@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetPulse: Student Internet Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    /* ─── CSS Custom Properties ─── */
+    :root {
+      --bg-primary: #0f1117;
+      --bg-secondary: #161b27;
+      --bg-card: #1e2535;
+      --bg-card-hover: #252d42;
+      --bg-input: #252d42;
+      --border: #2e3a52;
+      --border-light: #3a4a68;
+      --text-primary: #e8edf5;
+      --text-secondary: #8899b4;
+      --text-muted: #5a6b85;
+      --accent-blue: #4f8ef7;
+      --accent-purple: #9b59f5;
+      --accent-green: #2dd4a0;
+      --accent-orange: #f97316;
+      --accent-pink: #ec4899;
+      --accent-yellow: #f59e0b;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    [data-theme="light"] {
+      --bg-primary: #f0f4ff;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f8faff;
+      --bg-input: #f0f4ff;
+      --border: #d1daf0;
+      --border-light: #b8c8e8;
+      --text-primary: #0f1a2e;
+      --text-secondary: #4a5a7a;
+      --text-muted: #8a9ab8;
+      --shadow-sm: 0 1px 3px rgba(0,80,200,0.08);
+      --shadow-md: 0 4px 16px rgba(0,80,200,0.1);
+      --shadow-lg: 0 8px 32px rgba(0,80,200,0.12);
+    }
+
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
+    }
+    ::selection { background: rgba(79,142,247,0.3); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+    /* ════════════════════════════════════════════════════
+       LANDING PAGE OVERLAY
+    ════════════════════════════════════════════════════ */
+    .landing-overlay {
+      position: fixed; inset: 0; z-index: 9000;
+      background: #080c16;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      overflow-y: auto;
+    }
+    .landing-overlay.hiding {
+      opacity: 0 !important;
+      transform: scale(1.04) !important;
+      pointer-events: none;
+    }
+    /* Decorative orbs */
+    .landing-overlay::before {
+      content: '';
+      position: fixed; width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 65%);
+      top: -250px; left: -200px;
+      animation: orb-float 10s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .landing-overlay::after {
+      content: '';
+      position: fixed; width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(155,89,245,0.10) 0%, transparent 65%);
+      bottom: -200px; right: -150px;
+      animation: orb-float 13s ease-in-out infinite alternate-reverse;
+      pointer-events: none;
+    }
+    @keyframes orb-float {
+      0%   { transform: translate(0, 0); }
+      100% { transform: translate(40px, 30px); }
+    }
+    .landing-content {
+      max-width: 840px; width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 18px; text-align: center;
+      position: relative; z-index: 1;
+      padding: 16px 0 24px;
+    }
+    .landing-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 14px; border-radius: 20px;
+      border: 1px solid rgba(79,142,247,0.4);
+      background: rgba(79,142,247,0.08);
+      font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: #4f8ef7;
+    }
+    .landing-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4f8ef7;
+      box-shadow: 0 0 8px #4f8ef7;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    .landing-title-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin: 2px 0 4px;
+    }
+    .landing-title {
+      font-size: clamp(48px, 8vw, 86px);
+      font-weight: 900; letter-spacing: -2px; line-height: 1.1;
+      background: linear-gradient(135deg, #e8edf5 0%, #4f8ef7 40%, #9b59f5 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 2px;
+      animation: shimmer-text 4s ease-in-out infinite alternate;
+    }
+    @keyframes shimmer-text {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    .landing-subtitle {
+      font-size: clamp(15px, 2vw, 18px); font-weight: 500; color: #8899b4;
+      letter-spacing: -0.1px; margin-top: 0; line-height: 1.35;
+    }
+    .landing-concept {
+      background: rgba(30,37,53,0.8);
+      border: 1px solid rgba(46,58,82,0.8);
+      border-radius: 16px; padding: 20px 28px;
+      text-align: left; max-width: 720px; width: 100%;
+      backdrop-filter: blur(8px);
+    }
+    .landing-concept-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: #4f8ef7; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .landing-concept-title::before {
+      content: ''; display: inline-block;
+      width: 24px; height: 2px; background: #4f8ef7;
+    }
+    .landing-concept-text {
+      font-size: 14px; color: #a8b8d0; line-height: 1.65;
+    }
+    .landing-concept-text strong { color: #e8edf5; }
+    
+    /* CTA button placed right in center below concept */
+    .landing-cta {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      margin: 4px 0;
+    }
+    .enter-btn {
+      padding: 15px 46px; border-radius: 50px;
+      background: linear-gradient(135deg, #4f8ef7, #9b59f5);
+      color: #fff; font-size: 16px; font-weight: 800;
+      border: none; cursor: pointer; letter-spacing: -0.2px;
+      box-shadow: 0 0 35px rgba(79,142,247,0.35), 0 8px 30px rgba(0,0,0,0.4);
+      transition: all 0.3s ease;
+      animation: enter-glow 2.5s ease-in-out infinite alternate;
+      position: relative; overflow: hidden;
+    }
+    .enter-btn::after {
+      content: '';
+      position: absolute; inset: -2px;
+      background: linear-gradient(135deg, #4f8ef7, #9b59f5, #4f8ef7);
+      border-radius: 50px; z-index: -1;
+      animation: enter-glow 2.5s ease-in-out infinite alternate;
+    }
+    @keyframes enter-glow {
+      0%   { box-shadow: 0 0 30px rgba(79,142,247,0.4), 0 8px 28px rgba(0,0,0,0.4); }
+      100% { box-shadow: 0 0 55px rgba(155,89,245,0.5), 0 8px 36px rgba(0,0,0,0.5); }
+    }
+    .enter-btn:hover { transform: translateY(-2px) scale(1.02); }
+    .enter-hint { font-size: 11px; color: #5a6b85; }
+
+    .landing-cats {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+      width: 100%;
+    }
+    @media(max-width:640px){ .landing-cats{ grid-template-columns: repeat(2,1fr); } }
+    .landing-cat {
+      background: rgba(30,37,53,0.7);
+      border: 1px solid rgba(46,58,82,0.8);
+      border-radius: 12px; padding: 12px 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      transition: all 0.3s ease;
+    }
+    .landing-cat:hover { transform: translateY(-3px); }
+    .landing-cat-icon { font-size: 24px; }
+    .landing-cat-label { font-size: 11px; font-weight: 700; }
+    .landing-cat-sub { font-size: 9px; color: #5a6b85; }
+    .landing-cat.blue   { border-color: rgba(79,142,247,0.3); }
+    .landing-cat.purple { border-color: rgba(155,89,245,0.3); }
+    .landing-cat.green  { border-color: rgba(45,212,160,0.3); }
+    .landing-cat.orange { border-color: rgba(249,115,22,0.3); }
+    .landing-cat.blue   .landing-cat-label { color: #4f8ef7; }
+    .landing-cat.purple .landing-cat-label { color: #9b59f5; }
+    .landing-cat.green  .landing-cat-label { color: #2dd4a0; }
+    .landing-cat.orange .landing-cat-label { color: #f97316; }
+
+    .landing-metrics {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+    }
+    .landing-metric-tag {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      color: #8899b4;
+    }
+    .landing-footer-meta {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+      font-size: 11px; color: #5a6b85; padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.06); width: 100%;
+    }
+
+    /* ─── Navbar ─── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0 24px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 16px; letter-spacing: -0.3px;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .brand:hover span { opacity: 0.8; }
+    .brand-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent-blue);
+      box-shadow: 0 0 12px var(--accent-blue);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 8px var(--accent-blue); }
+      50% { box-shadow: 0 0 20px var(--accent-blue), 0 0 40px rgba(79,142,247,0.3); }
+    }
+    .brand span { color: var(--accent-blue); transition: opacity 0.2s; }
+    .nav-actions {
+      display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+    }
+    .nav-filter select {
+      background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text-primary); border-radius: var(--radius-sm);
+      padding: 6px 10px; font-size: 13px; cursor: pointer;
+      outline: none; transition: var(--transition);
+    }
+    .nav-filter select:focus { border-color: var(--accent-blue); }
+    .nav-filter.has-filter select {
+      border-color: var(--accent-blue);
+      background: rgba(79,142,247,0.1);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      border: 1px solid transparent; transition: var(--transition);
+      outline: none; text-decoration: none; white-space: nowrap;
+    }
+    .btn-ghost { background: transparent; border-color: var(--border); color: var(--text-secondary); }
+    .btn-ghost:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-light); }
+    .btn-primary { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; border-color: rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-success { background: rgba(45,212,160,0.15); color: var(--accent-green); border-color: rgba(45,212,160,0.3); }
+    .btn-success:hover { background: rgba(45,212,160,0.25); }
+    .btn-warning { background: rgba(249,115,22,0.15); color: var(--accent-orange); border-color: rgba(249,115,22,0.3); }
+    .btn-warning:hover { background: rgba(249,115,22,0.25); }
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-input); border: 1px solid var(--border);
+      cursor: pointer; font-size: 16px; transition: var(--transition); flex-shrink: 0;
+    }
+    .theme-toggle:hover { background: var(--bg-card-hover); border-color: var(--accent-blue); }
+
+    /* ─── Filter Banner ─── */
+    .filter-banner {
+      background: linear-gradient(90deg, rgba(79,142,247,0.1), transparent);
+      border-bottom: 1px solid rgba(79,142,247,0.2);
+      padding: 8px 24px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 600; color: var(--accent-blue);
+      transition: all 0.3s; overflow: hidden;
+    }
+    .filter-banner.hidden { display: none; }
+    .filter-banner-close {
+      margin-left: auto; cursor: pointer; opacity: 0.6; font-size: 14px;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .filter-banner-close:hover { opacity: 1; background: rgba(79,142,247,0.15); }
+
+    /* ─── Main Layout ─── */
+    .main { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+
+    /* ─── KPI Cards ─── */
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; margin-bottom: 24px;
+    }
+    @media(max-width:900px){ .kpi-grid{ grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:480px){ .kpi-grid{ grid-template-columns: 1fr; } }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      position: relative; overflow: hidden;
+      transition: var(--transition); cursor: default;
+    }
+    .kpi-card:hover { background: var(--bg-card-hover); border-color: var(--border-light); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .kpi-card.blue::before   { background: linear-gradient(90deg, var(--accent-blue),   #7ab3ff); }
+    .kpi-card.purple::before { background: linear-gradient(90deg, var(--accent-purple), #c47cff); }
+    .kpi-card.green::before  { background: linear-gradient(90deg, var(--accent-green),  #5effd4); }
+    .kpi-card.orange::before { background: linear-gradient(90deg, var(--accent-orange), #fb923c); }
+    .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+    .kpi-value { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .kpi-card.blue   .kpi-value { color: var(--accent-blue); }
+    .kpi-card.purple .kpi-value { color: var(--accent-purple); }
+    .kpi-card.green  .kpi-value { color: var(--accent-green); }
+    .kpi-card.orange .kpi-value { color: var(--accent-orange); }
+    .kpi-sub { font-size: 12px; color: var(--text-muted); }
+    .kpi-icon { position: absolute; top: 16px; right: 16px; font-size: 28px; opacity: 0.15; }
+
+    /* ════════════════════════════════════════════════════
+       HERO SPLIT (BALANCED EQUAL HEIGHT — ZERO EMPTY SPACE)
+    ════════════════════════════════════════════════════ */
+    .hero-split {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; margin-bottom: 32px;
+      align-items: stretch; /* equal height cards */
+    }
+    @media(max-width:900px){ .hero-split{ grid-template-columns:1fr; } }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      transition: var(--transition);
+    }
+    .hero-chart-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .hero-chart-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 6px;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 700; letter-spacing: -0.2px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-blue   { background: var(--accent-blue); }
+    .dot-purple { background: var(--accent-purple); }
+    .dot-green  { background: var(--accent-green); }
+    .dot-orange { background: var(--accent-orange); }
+    .chart-wrap { position: relative; height: 250px; }
+
+    /* ─── Compact Simulator on Dashboard (Zero Empty Space) ─── */
+    .sim-compact-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .simulator { display: flex; flex-direction: column; gap: 10px; }
+    .sim-slider-group label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 600; margin-bottom: 4px;
+    }
+    .sim-slider-group label span.val { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+    input[type=range] {
+      width: 100%; height: 6px; border-radius: 3px;
+      appearance: none; -webkit-appearance: none;
+      background: var(--border); cursor: pointer; outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none; width: 16px; height: 16px;
+      border-radius: 50%; cursor: pointer; transition: var(--transition);
+    }
+    .sim-edu   input[type=range] { accent-color: var(--accent-blue); }
+    .sim-edu   input[type=range]::-webkit-slider-thumb { background: var(--accent-blue); }
+    .sim-ent   input[type=range] { accent-color: var(--accent-purple); }
+    .sim-ent   input[type=range]::-webkit-slider-thumb { background: var(--accent-purple); }
+    .sim-soc   input[type=range] { accent-color: var(--accent-green); }
+    .sim-soc   input[type=range]::-webkit-slider-thumb { background: var(--accent-green); }
+    .sim-com   input[type=range] { accent-color: var(--accent-orange); }
+    .sim-com   input[type=range]::-webkit-slider-thumb { background: var(--accent-orange); }
+
+    /* 24hr Total Progress Bar */
+    .sim-total-bar-wrap {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 8px 12px;
+    }
+    .sim-total-bar-header {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 700; margin-bottom: 6px;
+    }
+    .sim-total-bar-label { color: var(--text-secondary); }
+    .sim-total-bar-value { font-family: var(--font-mono); font-size: 12px; }
+    .sim-total-bar-value.ok     { color: var(--accent-green); }
+    .sim-total-bar-value.warn   { color: var(--accent-yellow); }
+    .sim-total-bar-value.danger { color: #ef4444; }
+    .daily-progress-track {
+      height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+    }
+    .daily-progress-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 0.3s ease, background 0.3s;
+    }
+    .daily-progress-fill.ok     { background: linear-gradient(90deg, #2dd4a0, #22d3ee); }
+    .daily-progress-fill.warn   { background: linear-gradient(90deg, #f59e0b, #fb923c); }
+    .daily-progress-fill.danger { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .sim-limit-badge {
+      display: none; margin-top: 4px;
+      font-size: 11px; font-weight: 700; color: #ef4444;
+      text-align: center; letter-spacing: 0.5px;
+      animation: blink-badge 1s step-end infinite;
+    }
+    .sim-limit-badge.show { display: block; }
+    @keyframes blink-badge {
+      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+
+    /* Compact Expand Banner at bottom of compact card */
+    .sim-compact-footer {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .sim-compact-footer:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+
+    /* ═══════════════════════════════════════════
+       EXPANDED SIMULATOR MODAL COMPONENTS
+    ═══════════════════════════════════════════ */
+    .sim-compare-wrap {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); overflow: hidden;
+    }
+    .sim-compare-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+    }
+    .sim-compare-title { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); }
+    .sim-compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .sim-compare-table th {
+      padding: 7px 10px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted);
+      border-bottom: 1px solid var(--border); text-align: center;
+    }
+    .sim-compare-table th:first-child { text-align: left; }
+    .sim-compare-table td {
+      padding: 8px 10px; border-bottom: 1px solid rgba(46,58,82,0.5);
+      text-align: center; font-family: var(--font-mono); font-size: 12px;
+    }
+    .sim-compare-table tbody tr:last-child td { border-bottom: none; }
+    .sim-compare-table td:first-child { text-align: left; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; }
+    .you-val { font-weight: 800; font-size: 13px; }
+    .avg-val { color: var(--text-muted); }
+    .ideal-val { color: var(--accent-green); font-weight: 600; }
+    .delta-badge {
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .delta-ok     { background: rgba(45,212,160,0.15); color: var(--accent-green); }
+    .delta-above  { background: rgba(239,68,68,0.15);  color: #ef4444; }
+    .delta-below  { background: rgba(245,158,11,0.15); color: var(--accent-yellow); }
+
+    /* Action Plan */
+    .sim-action-plan {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 12px 14px;
+    }
+    .sim-action-title { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+    .action-items { display: flex; flex-direction: column; gap: 7px; }
+    .action-item {
+      font-size: 13px; line-height: 1.55; color: var(--text-secondary);
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .action-item .action-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+    .action-item strong { color: var(--text-primary); }
+
+    /* Wellness Score */
+    .wellness-wrap {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .wellness-score-ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; font-family: var(--font-mono);
+      flex-shrink: 0; position: relative;
+      background: conic-gradient(var(--score-color, #2dd4a0) calc(var(--score-pct, 70) * 1%), var(--border) 0%);
+      transition: all 0.5s ease;
+    }
+    .wellness-score-ring::before {
+      content: ''; position: absolute; width: 50px; height: 50px;
+      border-radius: 50%; background: var(--bg-input);
+    }
+    .wellness-score-inner {
+      position: relative; z-index: 1; font-size: 16px; font-weight: 800;
+      font-family: var(--font-mono);
+    }
+    .wellness-info { flex: 1; }
+    .wellness-label { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .wellness-status { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .wellness-sub { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .wellness-bar { height: 5px; background: var(--border); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+    .wellness-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease, background 0.5s; }
+
+    /* ─── Badges ─── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .badge-above   { background: rgba(239,68,68,0.15);   color: #ef4444; }
+    .badge-below   { background: rgba(45,212,160,0.15);  color: var(--accent-green); }
+    .badge-neutral { background: rgba(245,158,11,0.15);  color: var(--accent-yellow); }
+    .badge-optimal { background: rgba(45,212,160,0.15);  color: var(--accent-green); }
+
+    /* ─── Chart Toggle ─── */
+    .chart-toggle { display: flex; gap: 6px; }
+    .chart-toggle-btn {
+      padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); cursor: pointer; transition: var(--transition);
+    }
+    .chart-toggle-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+    /* ─── Section headers ─── */
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .section-title { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+    .section-badge { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    .section-divider { flex: 1; height: 1px; background: var(--border); min-width: 20px; }
+    .mb-24 { margin-bottom: 24px; }
+
+    /* ─── Stats Table ─── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--bg-input); }
+    thead th {
+      padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+      color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: var(--transition); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-card-hover); }
+    tbody td { padding: 11px 16px; font-family: var(--font-mono); font-size: 13px; }
+    tbody td:first-child { font-family: 'Inter', sans-serif; font-weight: 600; color: var(--text-secondary); font-size: 13px; }
+    /* Column highlight for active filter */
+    .col-active { background: rgba(79,142,247,0.07) !important; }
+    .col-active-header { color: var(--accent-blue) !important; background: rgba(79,142,247,0.1) !important; }
+    .highlight-max { background: rgba(79,142,247,0.12); color: var(--accent-blue); border-radius: 4px; padding: 2px 6px; font-weight: 700; }
+    .highlight-min { background: rgba(45,212,160,0.12); color: var(--accent-green); border-radius: 4px; padding: 2px 6px; font-weight: 700; }
+
+    /* ─── Charts Grid ─── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media(max-width:800px){ .charts-grid{ grid-template-columns:1fr; } }
+    .chart-full { grid-column: 1 / -1; }
+    .chart-wrap-tall { position: relative; height: 300px; }
+
+    /* ─── Form Panel ─── */
+    .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media(max-width:800px){ .panel-grid{ grid-template-columns:1fr; } }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 12px; font-weight: 600; letter-spacing: 0.4px; color: var(--text-secondary); }
+    .form-group input[type=number] {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 12px;
+      color: var(--text-primary); font-size: 13px; font-family: var(--font-mono);
+      outline: none; transition: var(--transition); width: 100%;
+    }
+    .form-group input[type=number]:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(79,142,247,0.12); }
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+
+    /* ─── Raw Table ─── */
+    .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 4px 0; user-select: none; }
+    .collapsible-header:hover .section-title { color: var(--accent-blue); }
+    .collapse-icon { font-size: 16px; transition: transform 0.2s; color: var(--text-muted); }
+    .collapsed .collapse-icon { transform: rotate(-90deg); }
+    .collapsible-content { overflow: hidden; transition: all 0.3s ease; }
+    .collapsible-content.collapsed { max-height: 0 !important; opacity: 0; }
+    .raw-table-wrap { max-height: 380px; overflow-y: auto; border-radius: var(--radius-md); border: 1px solid var(--border); }
+    .raw-table td:last-child { text-align: right; }
+
+    /* ─── Insights with Pulse Animation ─── */
+    .insights-grid { display: flex; flex-direction: column; gap: 10px; }
+    .insight-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px; transition: border-color 0.3s;
+    }
+    .insight-item:hover { border-color: var(--border-light); }
+    .insight-item.updating {
+      animation: insight-pulse 0.6s ease-out;
+    }
+    @keyframes insight-pulse {
+      0%   { border-color: var(--accent-blue); box-shadow: 0 0 0 0 rgba(79,142,247,0.4); background: rgba(79,142,247,0.06); }
+      50%  { border-color: var(--accent-blue); box-shadow: 0 0 0 6px rgba(79,142,247,0); }
+      100% { border-color: var(--border); box-shadow: none; background: var(--bg-input); }
+    }
+    .insight-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .insight-text { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+    .insight-text strong { color: var(--text-primary); }
+
+    /* ─── Modals ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 26px;
+      max-width: 480px; width: 100%;
+      transform: translateY(16px) scale(0.97); transition: transform 0.2s;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .modal-title { font-size: 17px; font-weight: 800; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-input); border: 1px solid var(--border);
+      cursor: pointer; font-size: 16px; transition: var(--transition); color: var(--text-secondary);
+    }
+    .modal-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+    .info-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-weight: 700; color: var(--text-secondary); min-width: 100px; }
+    .info-value { color: var(--text-primary); line-height: 1.5; }
+    .info-accent { color: var(--accent-blue); font-weight: 700; }
+    .supabase-form { display: flex; flex-direction: column; gap: 14px; }
+    .supabase-form input {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      color: var(--text-primary); font-size: 13px; font-family: var(--font-mono);
+      outline: none; transition: var(--transition); width: 100%;
+    }
+    .supabase-form input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(79,142,247,0.12); }
+    .supabase-status { font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 8px; }
+    .supabase-status.success { background: rgba(45,212,160,0.1); color: var(--accent-green); }
+    .supabase-status.error   { background: rgba(239,68,68,0.1);  color: #ef4444; }
+    .supabase-status.loading { background: rgba(79,142,247,0.1); color: var(--accent-blue); }
+
+    /* ─── Footer ─── */
+    footer { background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 28px 24px; margin-top: 40px; text-align: center; }
+    .footer-inner { max-width: 1400px; margin: 0 auto; }
+    .footer-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .footer-problem { max-width: 700px; margin: 0 auto; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .footer-copy { font-size: 11px; color: var(--text-muted); margin-top: 16px; opacity: 0.6; }
+
+    /* ─── Toast ─── */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 12px 16px;
+      font-size: 13px; display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-lg); animation: slide-in 0.3s ease;
+      min-width: 240px; max-width: 320px;
+    }
+    @keyframes slide-in { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* ─── Utilities ─── */
+    .text-blue   { color: var(--accent-blue); }
+    .text-purple { color: var(--accent-purple); }
+    .text-green  { color: var(--accent-green); }
+    .text-orange { color: var(--accent-orange); }
+    .hidden { display: none !important; }
+    .label-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .tag-edu { background: rgba(79,142,247,0.15); color: var(--accent-blue); }
+    .tag-ent { background: rgba(155,89,245,0.15); color: var(--accent-purple); }
+    .tag-soc { background: rgba(45,212,160,0.15); color: var(--accent-green); }
+    .tag-com { background: rgba(249,115,22,0.15); color: var(--accent-orange); }
+    .progress-bar-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+    @media(max-width:600px){
+      .navbar { padding: 0 14px; }
+      .main { padding: 16px 14px; }
+      .modal { padding: 20px; }
+      .kpi-value { font-size: 22px; }
+      .brand { font-size: 14px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .nav-actions { gap: 6px; }
+      .btn { padding: 6px 10px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     LANDING PAGE OVERLAY (FIXED TITLE SPACING & CENTERED BUTTON)
+══════════════════════════════════════════════════════ -->
+<div id="landingOverlay" class="landing-overlay">
+  <div class="landing-content">
+
+    <div class="landing-badge">
+      <div class="landing-badge-dot"></div>
+      MDM Mini Project · Student Life Analytics
+    </div>
+
+    <!-- Breathable, clean title with zero overlap -->
+    <div class="landing-title-box">
+      <div class="landing-title">NetPulse</div>
+      <div class="landing-subtitle">Student Internet Analytics Platform</div>
+    </div>
+
+    <div class="landing-concept">
+      <div class="landing-concept-title">The Idea</div>
+      <div class="landing-concept-text">
+        University students spend hours online every day — but <strong>how, how much, and how consistently?</strong>
+        <br><br>
+        NetPulse analyzes daily internet usage across <strong>four key behavioural dimensions</strong> — Education, Entertainment, Social Media, and Communication — using seven rigorous statistical lenses: <strong>Mean, Median, Mode, Range, Standard Deviation, Coefficient of Variation, and Skewness</strong>.
+        <br><br>
+        The goal: uncover hidden usage patterns, compare individual habits against peer benchmarks and <em>ideal productivity targets</em>, and translate raw numbers into <strong>actionable digital wellness insights</strong> for students and institutions.
+      </div>
+    </div>
+
+    <!-- Repositioned CTA Button: Prominently in center directly below The Idea -->
+    <div class="landing-cta">
+      <button class="enter-btn" onclick="enterDashboard()">
+        Enter Dashboard &nbsp;→
+      </button>
+      <div class="enter-hint">40 pre-loaded students · Live recalculation · Dark &amp; Light mode</div>
+    </div>
+
+    <div class="landing-cats">
+      <div class="landing-cat blue">
+        <div class="landing-cat-icon">📚</div>
+        <div class="landing-cat-label">Education</div>
+        <div class="landing-cat-sub">E-learning · Research</div>
+      </div>
+      <div class="landing-cat purple">
+        <div class="landing-cat-icon">🎬</div>
+        <div class="landing-cat-label">Entertainment</div>
+        <div class="landing-cat-sub">Streaming · Gaming</div>
+      </div>
+      <div class="landing-cat green">
+        <div class="landing-cat-icon">📱</div>
+        <div class="landing-cat-label">Social Media</div>
+        <div class="landing-cat-sub">Instagram · Twitter</div>
+      </div>
+      <div class="landing-cat orange">
+        <div class="landing-cat-icon">💬</div>
+        <div class="landing-cat-label">Communication</div>
+        <div class="landing-cat-sub">WhatsApp · Email</div>
+      </div>
+    </div>
+
+    <div class="landing-metrics">
+      <span class="landing-metric-tag">μ Mean</span>
+      <span class="landing-metric-tag">Median</span>
+      <span class="landing-metric-tag">Mode</span>
+      <span class="landing-metric-tag">Range</span>
+      <span class="landing-metric-tag">σ Std Dev</span>
+      <span class="landing-metric-tag">CV%</span>
+      <span class="landing-metric-tag">Skewness</span>
+    </div>
+
+    <div class="landing-footer-meta">
+      <span>👤 Shashank Mahadev Nemane</span>
+      <span>🎓 Roll No: B25CE1037</span>
+      <span>🏛️ Domain: Student Life</span>
+      <span>📊 MDM Mini Project · 2025–26</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════════════ -->
+<nav class="navbar">
+  <div class="brand" onclick="showLanding()" title="Back to Home">
+    <div class="brand-dot"></div>
+    <span>NetPulse</span>: Student Internet Analytics
+  </div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost btn-sm" onclick="showLanding()" title="Back to The Idea screen">🏠 The Idea</button>
+    <div class="nav-filter" id="navFilterWrap">
+      <select id="filterCategory" onchange="applyFilter()">
+        <option value="all">All Categories</option>
+        <option value="education">📚 Education</option>
+        <option value="entertainment">🎬 Entertainment</option>
+        <option value="social_media">📱 Social Media</option>
+        <option value="communication">💬 Communication</option>
+      </select>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('projectModal')">ℹ️ Project Info</button>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('supabaseModal')">⚡ Supabase</button>
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" id="themeToggle">🌙</div>
+  </div>
+</nav>
+
+<!-- Active Filter Banner -->
+<div class="filter-banner hidden" id="filterBanner">
+  <span>🔍</span>
+  <span id="filterBannerText">Viewing: All Categories</span>
+  <span class="filter-banner-close" onclick="clearFilter()" title="Clear filter">✕ Clear</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN DASHBOARD
+══════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-icon" id="kpiIcon0">⏱</div>
+      <div class="kpi-label" id="kpiLabel0">Total Daily Screen Time</div>
+      <div class="kpi-value" id="kpiScreenTime">—</div>
+      <div class="kpi-sub" id="kpiSub0">Avg hours/student/day</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon" id="kpiIcon1">🏆</div>
+      <div class="kpi-label" id="kpiLabel1">Primary Usage Driver</div>
+      <div class="kpi-value" id="kpiTopCategory">—</div>
+      <div class="kpi-sub" id="kpiTopCategorySub">Highest mean category</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon" id="kpiIcon2">🎯</div>
+      <div class="kpi-label" id="kpiLabel2">Most Consistent Habit</div>
+      <div class="kpi-value" id="kpiConsistent">—</div>
+      <div class="kpi-sub" id="kpiConsistentSub">Lowest CV%</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-icon" id="kpiIcon3">⚠️</div>
+      <div class="kpi-label" id="kpiLabel3">Distribution Alert</div>
+      <div class="kpi-value" id="kpiSkewed">—</div>
+      <div class="kpi-sub" id="kpiSkewedSub">Most skewed category</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       HERO SPLIT: EQUAL HEIGHT & ZERO EMPTY SPACE
+       Left: Usage Breakdown Chart + category chips
+       Right: Quick Habit Simulator (Compact View) with "Expand" Trigger
+  ══════════════════════════════════════════════════════ -->
+  <div class="hero-split mb-24">
+    <!-- Left: Interactive Usage Breakdown -->
+    <div class="card hero-chart-card">
+      <div>
+        <div class="card-header">
+          <div class="card-title">
+            <div class="dot dot-blue"></div>
+            <span id="heroChartTitle">Usage Breakdown</span>
+          </div>
+          <div class="chart-toggle" id="heroChartToggle">
+            <button class="chart-toggle-btn active" id="btnDoughnut" onclick="switchHeroChart('doughnut')">Doughnut</button>
+            <button class="chart-toggle-btn" id="btnBar" onclick="switchHeroChart('bar')">Bar</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="heroChart"></canvas>
+        </div>
+      </div>
+      <!-- Balanced Category Footer Bar -->
+      <div class="hero-chart-footer" id="heroChartFooter">
+        <span class="label-tag tag-edu">📚 Edu: <strong id="hfEdu">2.7h</strong></span>
+        <span class="label-tag tag-ent">🎬 Ent: <strong id="hfEnt">3.2h</strong></span>
+        <span class="label-tag tag-soc">📱 Soc: <strong id="hfSoc">2.6h</strong></span>
+        <span class="label-tag tag-com">💬 Com: <strong id="hfCom">1.9h</strong></span>
+      </div>
+    </div>
+
+    <!-- Right: Quick Habit Simulator (Compact View - Equal Height, Zero Left Gap) -->
+    <div class="card sim-compact-card">
+      <div>
+        <div class="card-header">
+          <div class="card-title">
+            <div class="dot dot-purple"></div>
+            Quick Habit Simulator
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('simulatorModal')">
+            ⛶ Expand Simulator
+          </button>
+        </div>
+
+        <div class="simulator">
+          <!-- 4 Sliders -->
+          <div class="sim-slider-group sim-edu">
+            <label>
+              <span class="label-tag tag-edu">📚 Education</span>
+              <span id="simEduVal" class="val">2.5h</span>
+            </label>
+            <input type="range" id="simEdu" min="0" max="24" step="0.1" value="2.5"
+                   oninput="onSliderChange('simEdu')">
+          </div>
+          <div class="sim-slider-group sim-ent">
+            <label>
+              <span class="label-tag tag-ent">🎬 Entertainment</span>
+              <span id="simEntVal" class="val">3.0h</span>
+            </label>
+            <input type="range" id="simEnt" min="0" max="24" step="0.1" value="3.0"
+                   oninput="onSliderChange('simEnt')">
+          </div>
+          <div class="sim-slider-group sim-soc">
+            <label>
+              <span class="label-tag tag-soc">📱 Social Media</span>
+              <span id="simSocVal" class="val">2.0h</span>
+            </label>
+            <input type="range" id="simSoc" min="0" max="24" step="0.1" value="2.0"
+                   oninput="onSliderChange('simSoc')">
+          </div>
+          <div class="sim-slider-group sim-com">
+            <label>
+              <span class="label-tag tag-com">💬 Communication</span>
+              <span id="simComVal" class="val">1.5h</span>
+            </label>
+            <input type="range" id="simCom" min="0" max="24" step="0.1" value="1.5"
+                   oninput="onSliderChange('simCom')">
+          </div>
+
+          <!-- 24hr Total Progress Bar -->
+          <div class="sim-total-bar-wrap">
+            <div class="sim-total-bar-header">
+              <span class="sim-total-bar-label">⏱ Daily Allocation</span>
+              <span class="sim-total-bar-value ok" id="simTotalBarVal">9.0 / 24.0 hrs</span>
+            </div>
+            <div class="daily-progress-track">
+              <div class="daily-progress-fill ok" id="simProgressFill" style="width:37.5%"></div>
+            </div>
+            <div class="sim-limit-badge" id="simLimitBadge">⛔ 24h Daily Limit Reached</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expand Trigger at bottom: Perfectly balances with left chart footer -->
+      <div class="sim-compact-footer" onclick="openModal('simulatorModal')" title="Click to open full 3-way benchmark & action plan">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="badge" id="compactWellnessPill" style="background:rgba(245,158,11,0.2); color:var(--accent-yellow); font-size:11px;">🟡 Score: 70</span>
+          <span style="font-size:11px; color:var(--text-muted);" id="compactTotalDelta">≈ avg screen time</span>
+        </div>
+        <div style="font-size:12px; font-weight:700; color:var(--accent-blue); display:flex; align-items:center; gap:4px;">
+          <span>Full Benchmark &amp; Plan</span> <span>↗</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /.hero-split -->
+
+  <!-- Statistical Comparison Table -->
+  <div class="section-header mb-24">
+    <div class="section-title">📊 Master Statistical Comparison</div>
+    <div class="section-badge" id="statsStudentCount">40 students</div>
+    <div class="section-divider"></div>
+    <span id="filterTableNote" style="font-size:12px;color:var(--accent-blue);font-weight:600;display:none;">← highlighted column</span>
+  </div>
+  <div class="table-wrap mb-24">
+    <table id="statsTable">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th data-col="education">📚 Education</th>
+          <th data-col="entertainment">🎬 Entertainment</th>
+          <th data-col="social_media">📱 Social Media</th>
+          <th data-col="communication">💬 Communication</th>
+        </tr>
+      </thead>
+      <tbody id="statsTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="section-header mb-24">
+    <div class="section-title">📈 Interactive Visualizations</div>
+    <div class="section-divider"></div>
+    <span id="chartFilterNote" style="font-size:12px;color:var(--accent-blue);font-weight:600;display:none;"></span>
+  </div>
+  <div class="charts-grid mb-24">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot dot-blue"></div> Mean &amp; Std Dev Comparison</div>
+      </div>
+      <div class="chart-wrap-tall"><canvas id="groupedBarChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot dot-purple"></div> <span id="distChartTitle">Distribution Overview</span></div>
+      </div>
+      <div class="chart-wrap-tall"><canvas id="distributionChart"></canvas></div>
+    </div>
+    <div class="card chart-full">
+      <div class="card-header">
+        <div class="card-title"><div class="dot dot-green"></div> Category Frequency Histogram</div>
+      </div>
+      <div style="position:relative;height:320px;"><canvas id="histogramChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Data Management Panel -->
+  <div class="section-header">
+    <div class="section-title">⚙️ Data Management</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="panel-grid mb-24">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot dot-green"></div> Add Student Record</div>
+      </div>
+      <form onsubmit="addRecord(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>📚 Education (hrs)</label>
+            <input type="number" id="fEdu" min="0" max="16" step="0.1" placeholder="e.g. 2.5" required />
+          </div>
+          <div class="form-group">
+            <label>🎬 Entertainment (hrs)</label>
+            <input type="number" id="fEnt" min="0" max="16" step="0.1" placeholder="e.g. 3.0" required />
+          </div>
+          <div class="form-group">
+            <label>📱 Social Media (hrs)</label>
+            <input type="number" id="fSoc" min="0" max="16" step="0.1" placeholder="e.g. 2.0" required />
+          </div>
+          <div class="form-group">
+            <label>💬 Communication (hrs)</label>
+            <input type="number" id="fCom" min="0" max="16" step="0.1" placeholder="e.g. 1.5" required />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">➕ Add Record</button>
+          <button type="reset" class="btn btn-ghost">Clear</button>
+        </div>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="dot dot-orange"></div> Dataset Actions</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Total students in dataset</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:28px;font-weight:800;font-family:var(--font-mono);" id="actStudentCount">40</div>
+            <div style="flex:1;">
+              <div class="progress-bar-wrap">
+                <div class="progress-bar" id="progressBar" style="background:var(--accent-blue);width:100%;"></div>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">of 100 max slots</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
+          <button class="btn btn-warning" onclick="resetData()">🔄 Reset to Default</button>
+          <button class="btn btn-ghost" onclick="openModal('supabaseModal')">☁️ Sync with Supabase</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">
+          Data is persisted in <code style="background:var(--bg-input);padding:1px 4px;border-radius:3px;">localStorage</code> and survives page reloads. Click Reset to restore the original 40-student dataset.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw Data Table -->
+  <div class="mb-24">
+    <div class="collapsible-header" onclick="toggleCollapse()" id="collapseHeader">
+      <div class="section-header" style="margin-bottom:0;flex:1;">
+        <div class="section-title">📋 Raw Student Data</div>
+        <div class="section-badge" id="rawCountBadge">40 records</div>
+        <div class="section-divider"></div>
+      </div>
+      <div class="collapse-icon">▾</div>
+    </div>
+    <div class="collapsible-content" id="collapseContent" style="max-height:500px;margin-top:16px;">
+      <div class="raw-table-wrap">
+        <table class="raw-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>📚 Education</th>
+              <th>🎬 Entertainment</th>
+              <th>📱 Social Media</th>
+              <th>💬 Communication</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rawTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Automated Insights -->
+  <div class="section-header mb-24">
+    <div class="section-title">💡 Automated Statistical Insights</div>
+    <div class="section-divider"></div>
+    <span id="insightFilterNote" style="font-size:12px;color:var(--accent-blue);font-weight:600;display:none;"></span>
+  </div>
+  <div class="card mb-24">
+    <div class="insights-grid" id="insightsGrid"></div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-meta">
+      <span>👤 <strong>Shashank Mahadev Nemane</strong></span>
+      <span>🎓 Roll No: <strong>B25CE1037</strong></span>
+      <span>🏛️ Domain: <strong>Student Life</strong></span>
+      <span>📊 Subject: <strong>Mathematical &amp; Data Modeling (MDM)</strong></span>
+      <span>📅 AY 2025–26</span>
+    </div>
+    <div class="footer-problem">
+      <strong>Problem Statement:</strong> To analyze the daily internet usage habits of university students across four key categories — Education, Entertainment, Social Media, and Communication — using core statistical methods (Mean, Median, Mode, Range, Standard Deviation, CV%, and Skewness) to uncover behavioral patterns and inform digital wellness policies.
+    </div>
+    <div class="footer-copy">NetPulse Analytics · Built with Chart.js &amp; Vanilla JS · Deployable on GitHub Pages</div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════ -->
+
+<!-- EXPANDED FULL SIMULATOR MODAL (IN FRONT OF BASIC UI) -->
+<div class="modal-overlay" id="simulatorModal">
+  <div class="modal" style="max-width: 720px; width: 100%;">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Quick Habit Simulator &amp; Benchmark Analysis</div>
+      <div class="modal-close" onclick="closeModal('simulatorModal')">✕</div>
+    </div>
+
+    <div class="simulator" style="gap: 16px;">
+      <!-- Modal Sliders Section (Synced with main card) -->
+      <div style="background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:11px; font-weight:700; letter-spacing:0.7px; text-transform:uppercase; color:var(--text-muted);">
+            Adjust Daily Hours (Strict 24h Max)
+          </span>
+          <span style="font-size:11px; color:var(--text-muted);">Synced in real-time</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="sim-slider-group sim-edu">
+            <label>
+              <span class="label-tag tag-edu">📚 Education</span>
+              <span id="m_simEduVal" class="val">2.5h</span>
+            </label>
+            <input type="range" id="m_simEdu" min="0" max="24" step="0.1" value="2.5"
+                   oninput="onModalSliderChange('m_simEdu')">
+          </div>
+          <div class="sim-slider-group sim-ent">
+            <label>
+              <span class="label-tag tag-ent">🎬 Entertainment</span>
+              <span id="m_simEntVal" class="val">3.0h</span>
+            </label>
+            <input type="range" id="m_simEnt" min="0" max="24" step="0.1" value="3.0"
+                   oninput="onModalSliderChange('m_simEnt')">
+          </div>
+          <div class="sim-slider-group sim-soc">
+            <label>
+              <span class="label-tag tag-soc">📱 Social Media</span>
+              <span id="m_simSocVal" class="val">2.0h</span>
+            </label>
+            <input type="range" id="m_simSoc" min="0" max="24" step="0.1" value="2.0"
+                   oninput="onModalSliderChange('m_simSoc')">
+          </div>
+          <div class="sim-slider-group sim-com">
+            <label>
+              <span class="label-tag tag-com">💬 Communication</span>
+              <span id="m_simComVal" class="val">1.5h</span>
+            </label>
+            <input type="range" id="m_simCom" min="0" max="24" step="0.1" value="1.5"
+                   oninput="onModalSliderChange('m_simCom')">
+          </div>
+        </div>
+
+        <!-- Modal 24hr Bar -->
+        <div class="sim-total-bar-wrap" style="margin-top:12px; background:var(--bg-card);">
+          <div class="sim-total-bar-header">
+            <span class="sim-total-bar-label">⏱ Total Allocated Screen Time</span>
+            <span class="sim-total-bar-value ok" id="m_simTotalBarVal">9.0 / 24.0 hrs</span>
+          </div>
+          <div class="daily-progress-track">
+            <div class="daily-progress-fill ok" id="m_simProgressFill" style="width:37.5%"></div>
+          </div>
+          <div class="sim-limit-badge" id="m_simLimitBadge">⛔ 24h Daily Limit Reached</div>
+        </div>
+      </div>
+
+      <!-- 3-Way Comparison Table -->
+      <div class="sim-compare-wrap">
+        <div class="sim-compare-header">
+          <span class="sim-compare-title">You vs Cohort vs Ideal Target</span>
+          <span style="font-size:11px;color:var(--text-muted);">Ideal = balanced productivity</span>
+        </div>
+        <table class="sim-compare-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Your Input</th>
+              <th>Cohort Avg</th>
+              <th>Ideal Target</th>
+              <th>vs Ideal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="simRow_edu">
+              <td><span class="label-tag tag-edu" style="font-size:11px;">📚 Education</span></td>
+              <td><span class="you-val text-blue" id="scYouEdu">—</span></td>
+              <td><span class="avg-val" id="scAvgEdu">—</span></td>
+              <td><span class="ideal-val">4.0h</span></td>
+              <td><span id="scDeltaEdu"></span></td>
+            </tr>
+            <tr id="simRow_ent">
+              <td><span class="label-tag tag-ent" style="font-size:11px;">🎬 Entertainment</span></td>
+              <td><span class="you-val text-purple" id="scYouEnt">—</span></td>
+              <td><span class="avg-val" id="scAvgEnt">—</span></td>
+              <td><span class="ideal-val">≤1.5h</span></td>
+              <td><span id="scDeltaEnt"></span></td>
+            </tr>
+            <tr id="simRow_soc">
+              <td><span class="label-tag tag-soc" style="font-size:11px;">📱 Social Media</span></td>
+              <td><span class="you-val text-green" id="scYouSoc">—</span></td>
+              <td><span class="avg-val" id="scAvgSoc">—</span></td>
+              <td><span class="ideal-val">≤1.0h</span></td>
+              <td><span id="scDeltaSoc"></span></td>
+            </tr>
+            <tr id="simRow_com">
+              <td><span class="label-tag tag-com" style="font-size:11px;">💬 Communication</span></td>
+              <td><span class="you-val text-orange" id="scYouCom">—</span></td>
+              <td><span class="avg-val" id="scAvgCom">—</span></td>
+              <td><span class="ideal-val">1.0h</span></td>
+              <td><span id="scDeltaCom"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action Plan -->
+      <div class="sim-action-plan">
+        <div class="sim-action-title">📋 Personal Action Plan</div>
+        <div class="action-items" id="simActionPlan">
+          <div class="action-item"><span class="action-icon">⏳</span>Adjust sliders to generate your plan.</div>
+        </div>
+      </div>
+
+      <!-- Wellness Score -->
+      <div class="wellness-wrap">
+        <div class="wellness-score-ring" id="wellnessRing" style="--score-pct:70;--score-color:#2dd4a0;">
+          <div class="wellness-score-inner" id="wellnessScoreVal">70</div>
+        </div>
+        <div class="wellness-info">
+          <div class="wellness-label">Wellness Score</div>
+          <div class="wellness-status" id="wellnessStatus">Needs Rebalancing 🟡</div>
+          <div class="wellness-sub" id="wellnessSub">Adjust sliders to see your digital wellness rating.</div>
+          <div class="wellness-bar">
+            <div class="wellness-bar-fill" id="wellnessBarFill" style="width:70%;background:var(--accent-yellow);"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Project Info Modal -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 Project Information</div>
+      <div class="modal-close" onclick="closeModal('projectModal')">✕</div>
+    </div>
+    <div class="info-row"><div class="info-label">Application</div><div class="info-value"><span class="info-accent">NetPulse: Student Internet Analytics</span></div></div>
+    <div class="info-row"><div class="info-label">Student Name</div><div class="info-value">Shashank Mahadev Nemane</div></div>
+    <div class="info-row"><div class="info-label">Roll No.</div><div class="info-value"><span class="info-accent">B25CE1037</span></div></div>
+    <div class="info-row"><div class="info-label">Domain</div><div class="info-value">Student Life</div></div>
+    <div class="info-row"><div class="info-label">Subject</div><div class="info-value">Mathematical &amp; Data Modeling (MDM)</div></div>
+    <div class="info-row"><div class="info-label">Academic Year</div><div class="info-value">2025–26</div></div>
+    <div class="info-row"><div class="info-label">Problem Statement</div><div class="info-value" style="line-height:1.6;">To analyze the daily internet usage habits of university students across four key categories — Education, Entertainment, Social Media, and Communication — using core statistical methods (Mean, Median, Mode, Range, Standard Deviation, CV%, and Skewness) to uncover behavioral patterns and inform digital wellness policies.</div></div>
+    <div class="info-row"><div class="info-label">Metrics</div><div class="info-value">Mean · Median · Mode · Range · Std Dev · CV% · Skewness</div></div>
+    <div class="info-row"><div class="info-label">Tech Stack</div><div class="info-value">Pure HTML/CSS/JS · Chart.js 4 · localStorage</div></div>
+  </div>
+</div>
+
+<!-- Supabase Modal -->
+<div class="modal-overlay" id="supabaseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Supabase Configuration</div>
+      <div class="modal-close" onclick="closeModal('supabaseModal')">✕</div>
+    </div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">Optionally connect to a Supabase project to sync data with a <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px;">student_internet_usage</code> table.</p>
+    <div class="supabase-form">
+      <div class="form-group"><label>Project URL</label><input type="url" id="sbUrl" placeholder="https://xxxx.supabase.co" /></div>
+      <div class="form-group"><label>Anon Public Key</label><input type="text" id="sbKey" placeholder="eyJhbGciOi..." /></div>
+      <div class="form-group"><label>Table Name</label><input type="text" id="sbTable" value="student_internet_usage" /></div>
+      <div id="sbStatus" style="display:none;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="supabaseConnect()">🔗 Connect &amp; Sync</button>
+        <button class="btn btn-ghost" onclick="supabaseClear()">✕ Clear Config</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">
+        <strong>Table Schema:</strong><br>
+        <code style="background:var(--bg-input);padding:4px 8px;border-radius:6px;display:block;margin-top:6px;font-size:11px;">id (serial), student_id (text), education (float), entertainment (float), social_media (float), communication (float)</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+// ══════════════════════════════════════════════════════
+// 1. DEFAULT DATASET — 40 students (STRICT PERSISTENCE)
+// ══════════════════════════════════════════════════════
+const DEFAULT_DATA = [
+  {id:'S01',education:2.5,entertainment:3.5,social_media:2.0,communication:1.5},
+  {id:'S02',education:3.0,entertainment:2.5,social_media:3.5,communication:2.0},
+  {id:'S03',education:1.5,entertainment:4.5,social_media:2.5,communication:1.0},
+  {id:'S04',education:4.0,entertainment:1.5,social_media:1.5,communication:2.5},
+  {id:'S05',education:2.0,entertainment:5.0,social_media:3.0,communication:1.5},
+  {id:'S06',education:3.5,entertainment:3.0,social_media:2.0,communication:2.0},
+  {id:'S07',education:1.0,entertainment:6.0,social_media:4.0,communication:1.0},
+  {id:'S08',education:5.0,entertainment:2.0,social_media:1.0,communication:3.0},
+  {id:'S09',education:2.5,entertainment:3.5,social_media:2.5,communication:1.5},
+  {id:'S10',education:3.0,entertainment:2.0,social_media:4.5,communication:2.5},
+  {id:'S11',education:4.5,entertainment:1.0,social_media:2.0,communication:3.5},
+  {id:'S12',education:2.0,entertainment:4.0,social_media:3.0,communication:1.0},
+  {id:'S13',education:1.5,entertainment:5.5,social_media:2.5,communication:1.5},
+  {id:'S14',education:3.5,entertainment:2.5,social_media:1.5,communication:2.0},
+  {id:'S15',education:2.5,entertainment:3.0,social_media:3.5,communication:2.5},
+  {id:'S16',education:4.0,entertainment:2.0,social_media:2.0,communication:1.5},
+  {id:'S17',education:1.0,entertainment:4.5,social_media:4.0,communication:1.0},
+  {id:'S18',education:3.0,entertainment:3.5,social_media:2.5,communication:2.0},
+  {id:'S19',education:5.5,entertainment:1.5,social_media:1.0,communication:2.0},
+  {id:'S20',education:2.0,entertainment:4.0,social_media:3.0,communication:2.5},
+  {id:'S21',education:3.5,entertainment:2.5,social_media:2.5,communication:1.5},
+  {id:'S22',education:1.5,entertainment:5.0,social_media:3.5,communication:1.0},
+  {id:'S23',education:4.0,entertainment:1.5,social_media:2.0,communication:3.0},
+  {id:'S24',education:2.5,entertainment:3.0,social_media:4.0,communication:2.0},
+  {id:'S25',education:3.0,entertainment:2.5,social_media:2.0,communication:2.5},
+  {id:'S26',education:1.0,entertainment:5.5,social_media:3.5,communication:1.0},
+  {id:'S27',education:4.5,entertainment:2.0,social_media:1.5,communication:2.5},
+  {id:'S28',education:2.0,entertainment:4.5,social_media:2.5,communication:1.5},
+  {id:'S29',education:3.5,entertainment:3.0,social_media:2.0,communication:2.0},
+  {id:'S30',education:5.0,entertainment:1.5,social_media:1.5,communication:2.0},
+  {id:'S31',education:2.5,entertainment:3.5,social_media:3.0,communication:1.5},
+  {id:'S32',education:1.5,entertainment:4.0,social_media:4.0,communication:1.0},
+  {id:'S33',education:4.0,entertainment:2.5,social_media:2.0,communication:2.5},
+  {id:'S34',education:3.0,entertainment:3.0,social_media:3.0,communication:2.0},
+  {id:'S35',education:2.0,entertainment:5.0,social_media:2.5,communication:1.5},
+  {id:'S36',education:3.5,entertainment:2.0,social_media:2.5,communication:2.0},
+  {id:'S37',education:1.0,entertainment:6.5,social_media:3.5,communication:1.0},
+  {id:'S38',education:4.5,entertainment:1.5,social_media:1.5,communication:3.0},
+  {id:'S39',education:2.5,entertainment:4.0,social_media:2.0,communication:2.5},
+  {id:'S40',education:3.0,entertainment:3.5,social_media:3.5,communication:1.5},
+];
+
+// ══════════════════════════════════════════════════════
+// 2. STATE
+// ══════════════════════════════════════════════════════
+const STORAGE_KEY = 'netpulse_student_data';
+const SB_KEY      = 'netpulse_supabase_config';
+let dataset = [];
+let heroChartMode  = 'doughnut';
+let heroChartInst  = null;
+let groupedBarInst = null;
+let distInst       = null;
+let histInst       = null;
+let activeFilter   = 'all';
+let collapseOpen   = true;
+
+const CATS = ['education','entertainment','social_media','communication'];
+const CAT_LABELS = { education:'Education', entertainment:'Entertainment', social_media:'Social Media', communication:'Communication' };
+const CAT_ICONS  = { education:'📚', entertainment:'🎬', social_media:'📱', communication:'💬' };
+const CAT_COLORS = {
+  education:    { solid:'rgba(79,142,247,0.85)',  border:'#4f8ef7', light:'rgba(79,142,247,0.15)'  },
+  entertainment:{ solid:'rgba(155,89,245,0.85)', border:'#9b59f5', light:'rgba(155,89,245,0.15)' },
+  social_media: { solid:'rgba(45,212,160,0.85)', border:'#2dd4a0', light:'rgba(45,212,160,0.15)' },
+  communication:{ solid:'rgba(249,115,22,0.85)', border:'#f97316', light:'rgba(249,115,22,0.15)' },
+};
+// Ideal daily benchmarks
+const IDEAL = { education:4.0, entertainment:1.5, social_media:1.0, communication:1.0 };
+
+// ══════════════════════════════════════════════════════
+// 3. STATISTICAL ENGINE (Strict Mathematical Accuracy)
+// ══════════════════════════════════════════════════════
+function calcStats(arr) {
+  const n = arr.length;
+  if (n === 0) return null;
+  const sorted = [...arr].sort((a,b) => a - b);
+
+  // Mean
+  const mean = arr.reduce((s,v) => s + v, 0) / n;
+
+  // Median
+  const median = n % 2 === 0
+    ? (sorted[n/2-1] + sorted[n/2]) / 2
+    : sorted[Math.floor(n/2)];
+
+  // Mode
+  const freq = {};
+  arr.forEach(v => { const k = Math.round(v*10)/10; freq[k] = (freq[k]||0)+1; });
+  const maxFreq = Math.max(...Object.values(freq));
+  const modes   = Object.keys(freq).filter(k => freq[k] === maxFreq).map(Number);
+  const modeStr = maxFreq === 1 ? 'No mode'
+    : modes.length > 3 ? 'Multi-modal'
+    : modes.map(m => m.toFixed(1)).join(', ');
+
+  // Range
+  const range = sorted[n-1] - sorted[0];
+
+  // Sample Standard Deviation
+  const variance = arr.reduce((s,v) => s + Math.pow(v-mean,2), 0) / (n-1);
+  const stdDev   = Math.sqrt(variance);
+
+  // Coefficient of Variation
+  const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+
+  // Sample Skewness (Fisher-Pearson with bias correction)
+  let skewness = 0;
+  if (n >= 3 && stdDev > 0) {
+    const m3 = arr.reduce((s,v) => s + Math.pow(v-mean,3), 0) / n;
+    skewness = (Math.sqrt(n*(n-1)) / (n-2)) * (m3 / Math.pow(stdDev,3));
+  }
+
+  return { n, mean, median, mode:modeStr, range, stdDev, cv, skewness, min:sorted[0], max:sorted[n-1] };
+}
+
+function computeAllStats() {
+  const result = {};
+  CATS.forEach(cat => { result[cat] = calcStats(dataset.map(r => r[cat])); });
+  return result;
+}
+
+// ══════════════════════════════════════════════════════
+// 4. PERSISTENCE
+// ══════════════════════════════════════════════════════
+function loadData() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) { dataset = JSON.parse(stored); return; }
+  } catch(e) {}
+  dataset = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  saveData();
+}
+function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); }
+function resetData() {
+  if (!confirm('Reset to default 40-student dataset? This cannot be undone.')) return;
+  dataset = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  saveData();
+  renderAll();
+  showToast('🔄 Dataset reset to default.', 'neutral');
+}
+
+// ══════════════════════════════════════════════════════
+// 5. LANDING PAGE
+// ══════════════════════════════════════════════════════
+function enterDashboard() {
+  const overlay = document.getElementById('landingOverlay');
+  overlay.classList.add('hiding');
+  setTimeout(() => { overlay.style.display = 'none'; }, 620);
+}
+function showLanding() {
+  const overlay = document.getElementById('landingOverlay');
+  overlay.style.display = 'flex';
+  overlay.classList.remove('hiding');
+  overlay.style.opacity = '0';
+  overlay.style.transform = 'scale(0.97)';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      overlay.style.opacity = '1';
+      overlay.style.transform = 'scale(1)';
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// 6. RENDER PIPELINE
+// ══════════════════════════════════════════════════════
+function renderAll() {
+  const stats = computeAllStats();
+  updateKPIs(stats);
+  renderStatsTable(stats);
+  renderHeroChart(stats);
+  renderGroupedBar(stats);
+  renderDistribution(stats);
+  renderHistogram();
+  renderRawTable();
+  renderInsights(stats);
+  updateSim();
+  updateActionsPanel();
+  updateFilterUI();
+}
+
+// ══════════════════════════════════════════════════════
+// 7. KPI CARDS (Filter-aware)
+// ══════════════════════════════════════════════════════
+function updateKPIs(stats) {
+  if (activeFilter === 'all') {
+    renderKPIsAll(stats);
+  } else {
+    renderKPIsCategory(stats, activeFilter);
+  }
+  document.getElementById('statsStudentCount').textContent = `${dataset.length} students`;
+}
+
+function renderKPIsAll(stats) {
+  const means = CATS.map(c => ({ cat:c, val:stats[c].mean }));
+  const totalAvg = means.reduce((s,x) => s + x.val, 0);
+
+  setKPI(0, '⏱', 'Total Daily Screen Time', totalAvg.toFixed(2)+'h', 'Avg hours/student/day across all categories');
+
+  const topCat = means.reduce((a,b) => a.val > b.val ? a : b);
+  setKPI(1, '🏆', 'Primary Usage Driver', CAT_LABELS[topCat.cat], `Avg ${topCat.val.toFixed(2)}h/day (highest mean)`);
+
+  const lowCV = CATS.map(c=>({cat:c,cv:stats[c].cv})).reduce((a,b) => a.cv<b.cv ? a : b);
+  setKPI(2, '🎯', 'Most Consistent Habit', CAT_LABELS[lowCV.cat], `CV: ${lowCV.cv.toFixed(1)}% (lowest variability)`);
+
+  const highSkew = CATS.map(c=>({cat:c,abs:Math.abs(stats[c].skewness)})).reduce((a,b)=>a.abs>b.abs?a:b);
+  const sk = stats[highSkew.cat].skewness;
+  setKPI(3, '⚠️', 'Distribution Alert', CAT_LABELS[highSkew.cat], `Skew: ${sk>0?'+':''}${sk.toFixed(2)} (${sk>0?'right':'left'}-tailed)`);
+}
+
+function renderKPIsCategory(stats, cat) {
+  const s = stats[cat];
+  const icon = CAT_ICONS[cat];
+  const label = CAT_LABELS[cat];
+
+  setKPI(0, icon, `${label} — Mean`, s.mean.toFixed(3)+'h', `Median: ${s.median.toFixed(3)}h · Mode: ${s.mode}`);
+  setKPI(1, '📐', `${label} — Spread`, `σ ${s.stdDev.toFixed(3)}`, `Range: ${s.range.toFixed(2)}h · Min: ${s.min.toFixed(1)}h / Max: ${s.max.toFixed(1)}h`);
+  setKPI(2, '🎯', `${label} — Variability`, `CV ${s.cv.toFixed(1)}%`, s.cv < 30 ? 'Low variability (consistent)' : s.cv < 50 ? 'Moderate variability' : 'High variability (inconsistent)');
+  const sk = s.skewness;
+  const skDir = sk > 0.3 ? 'Right-skewed (heavy users)' : sk < -0.3 ? 'Left-skewed (light users)' : 'Approximately symmetric';
+  setKPI(3, sk > 0 ? '➡️' : sk < 0 ? '⬅️' : '↔️', `${label} — Skewness`, (sk>=0?'+':'')+sk.toFixed(3), skDir);
+}
+
+function setKPI(idx, icon, label, value, sub) {
+  document.getElementById(`kpiIcon${idx}`).textContent = icon;
+  document.getElementById(`kpiLabel${idx}`).textContent = label;
+  const valEl = document.getElementById(idx===0?'kpiScreenTime':idx===1?'kpiTopCategory':idx===2?'kpiConsistent':'kpiSkewed');
+  valEl.textContent = value;
+  document.getElementById(idx===1?'kpiTopCategorySub':idx===2?'kpiConsistentSub':idx===3?'kpiSkewedSub':'kpiSub0').textContent = sub;
+}
+
+// ══════════════════════════════════════════════════════
+// 8. STATS TABLE
+// ══════════════════════════════════════════════════════
+function renderStatsTable(stats) {
+  const metrics = [
+    { label:'Mean (avg hrs/day)',       key:'mean',     fmt:v=>v.toFixed(3) },
+    { label:'Median',                   key:'median',   fmt:v=>v.toFixed(3) },
+    { label:'Mode',                     key:'mode',     fmt:v=>v },
+    { label:'Range (Max − Min)',        key:'range',    fmt:v=>v.toFixed(3) },
+    { label:'Std Deviation (σ)',        key:'stdDev',   fmt:v=>v.toFixed(4) },
+    { label:'Coeff. of Variation (%)',  key:'cv',       fmt:v=>v.toFixed(2)+'%' },
+    { label:'Skewness',                 key:'skewness', fmt:v=>(v>=0?'+':'')+v.toFixed(4) },
+  ];
+  const numericKeys = ['mean','median','range','stdDev','cv'];
+  const tbody = document.getElementById('statsTableBody');
+  tbody.innerHTML = '';
+
+  metrics.forEach(metric => {
+    const row = document.createElement('tr');
+    let maxCat = null, minCat = null;
+    if (numericKeys.includes(metric.key)) {
+      const vals = CATS.map(c => ({ c, v:stats[c][metric.key] }));
+      maxCat = vals.reduce((a,b)=>a.v>b.v?a:b).c;
+      minCat = vals.reduce((a,b)=>a.v<b.v?a:b).c;
+    }
+    const cells = [`<td>${metric.label}</td>`, ...CATS.map(cat => {
+      const raw     = stats[cat][metric.key];
+      const display = metric.fmt(raw);
+      let cls = '';
+      if (cat === maxCat) cls = 'highlight-max';
+      if (cat === minCat) cls = 'highlight-min';
+      const colCls = (activeFilter !== 'all' && cat === activeFilter) ? ' col-active' : '';
+      return `<td class="${colCls}">${cls ? `<span class="${cls}">${display}</span>` : display}</td>`;
+    })];
+    row.innerHTML = cells.join('');
+    tbody.appendChild(row);
+  });
+
+  const ths = document.querySelectorAll('#statsTable thead th[data-col]');
+  ths.forEach(th => {
+    th.classList.remove('col-active-header');
+    if (activeFilter !== 'all' && th.dataset.col === activeFilter) th.classList.add('col-active-header');
+  });
+
+  const noteEl = document.getElementById('filterTableNote');
+  noteEl.style.display = activeFilter !== 'all' ? 'inline' : 'none';
+}
+
+// ══════════════════════════════════════════════════════
+// 9. HERO CHART
+// ══════════════════════════════════════════════════════
+function renderHeroChart(stats) {
+  if (heroChartInst) { heroChartInst.destroy(); heroChartInst = null; }
+  const ctx = document.getElementById('heroChart').getContext('2d');
+  const tc  = getTextSecondary();
+
+  // Update footer chips on the left card
+  const hfEdu = document.getElementById('hfEdu');
+  if (hfEdu && stats.education) hfEdu.textContent = stats.education.mean.toFixed(1) + 'h';
+  const hfEnt = document.getElementById('hfEnt');
+  if (hfEnt && stats.entertainment) hfEnt.textContent = stats.entertainment.mean.toFixed(1) + 'h';
+  const hfSoc = document.getElementById('hfSoc');
+  if (hfSoc && stats.social_media) hfSoc.textContent = stats.social_media.mean.toFixed(1) + 'h';
+  const hfCom = document.getElementById('hfCom');
+  if (hfCom && stats.communication) hfCom.textContent = stats.communication.mean.toFixed(1) + 'h';
+
+  if (activeFilter !== 'all') {
+    const catVals  = [...dataset.map(r => r[activeFilter])].sort((a,b)=>a-b);
+    const labels   = catVals.map((_,i)=>`S${i+1}`);
+    const col      = CAT_COLORS[activeFilter];
+    const meanLine = stats[activeFilter].mean;
+
+    heroChartInst = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          label:`${CAT_LABELS[activeFilter]} (hrs/day)`,
+          data:catVals,
+          backgroundColor: catVals.map(v => v >= meanLine ? col.solid : col.light),
+          borderColor: col.border, borderWidth:1.5, borderRadius:4,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{ callbacks:{ label:ctx=>`${ctx.raw.toFixed(2)}h/day`} }
+        },
+        scales:{
+          y:{ beginAtZero:true, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:10}} },
+          x:{ grid:{display:false}, ticks:{color:tc,font:{size:9}, maxTicksLimit:10} }
+        }
+      }
+    });
+    document.getElementById('heroChartTitle').textContent = `${CAT_ICONS[activeFilter]} ${CAT_LABELS[activeFilter]} — Student Distribution`;
+    document.getElementById('heroChartToggle').style.display = 'none';
+  } else {
+    document.getElementById('heroChartTitle').textContent = 'Usage Breakdown';
+    document.getElementById('heroChartToggle').style.display = 'flex';
+    const means   = CATS.map(c => stats[c].mean);
+    const labels  = CATS.map(c => CAT_LABELS[c]);
+    const colors  = CATS.map(c => CAT_COLORS[c].solid);
+    const borders = CATS.map(c => CAT_COLORS[c].border);
+
+    if (heroChartMode === 'doughnut') {
+      heroChartInst = new Chart(ctx, {
+        type:'doughnut',
+        data:{ labels, datasets:[{ data:means, backgroundColor:colors, borderColor:borders, borderWidth:2, hoverOffset:8 }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ position:'bottom', labels:{ color:tc, padding:14, font:{size:11,weight:'600'} } },
+            tooltip:{ callbacks:{ label:ctx=>` ${ctx.label}: ${ctx.raw.toFixed(2)}h/day` } }
+          },
+          cutout:'68%'
+        }
+      });
+    } else {
+      heroChartInst = new Chart(ctx, {
+        type:'bar',
+        data:{ labels, datasets:[{ label:'Mean hrs/day', data:means, backgroundColor:colors, borderColor:borders, borderWidth:2, borderRadius:8 }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false} },
+          scales:{
+            y:{ beginAtZero:true, grid:{color:'rgba(128,128,128,0.06)'}, ticks:{color:tc,font:{size:11}} },
+            x:{ grid:{display:false}, ticks:{color:tc,font:{size:11,weight:'600'}} }
+          }
+        }
+      });
+    }
+  }
+}
+
+function switchHeroChart(mode) {
+  heroChartMode = mode;
+  document.getElementById('btnDoughnut').classList.toggle('active', mode==='doughnut');
+  document.getElementById('btnBar').classList.toggle('active', mode==='bar');
+  renderHeroChart(computeAllStats());
+}
+
+// ══════════════════════════════════════════════════════
+// 10. GROUPED BAR CHART
+// ══════════════════════════════════════════════════════
+function renderGroupedBar(stats) {
+  if (groupedBarInst) { groupedBarInst.destroy(); groupedBarInst = null; }
+  const ctx = document.getElementById('groupedBarChart').getContext('2d');
+  const tc  = getTextSecondary();
+
+  const catList = activeFilter !== 'all' ? [activeFilter] : CATS;
+  const labels  = catList.map(c => CAT_LABELS[c]);
+
+  const meansData = catList.map(c => stats[c].mean);
+  const stdData   = catList.map(c => stats[c].stdDev);
+  const bgColors  = catList.map(c => CAT_COLORS[c].solid);
+  const brColors  = catList.map(c => CAT_COLORS[c].border);
+  const ltColors  = catList.map(c => CAT_COLORS[c].light);
+
+  groupedBarInst = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        { label:'Mean (hrs)',    data:meansData, backgroundColor:bgColors, borderColor:brColors, borderWidth:2, borderRadius:6 },
+        { label:'Std Dev (σ)',   data:stdData,   backgroundColor:ltColors, borderColor:brColors, borderWidth:2, borderRadius:6 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', labels:{ color:tc, font:{size:12,weight:'600'} } },
+        tooltip:{ callbacks:{ label:ctx=>` ${ctx.dataset.label}: ${ctx.raw.toFixed(3)}` } }
+      },
+      scales:{
+        y:{ beginAtZero:true, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:11}} },
+        x:{ grid:{display:false}, ticks:{color:tc,font:{size:11,weight:'600'}} }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// 11. DISTRIBUTION CHART
+// ══════════════════════════════════════════════════════
+function renderDistribution(stats) {
+  if (distInst) { distInst.destroy(); distInst = null; }
+  const ctx = document.getElementById('distributionChart').getContext('2d');
+  const tc  = getTextSecondary();
+
+  if (activeFilter !== 'all') {
+    const bins = [];
+    const cnts = new Array(9).fill(0);
+    for (let i=0; i<9; i++) bins.push(`${i}–${i+1}h`);
+    dataset.forEach(r => { const b = Math.min(Math.floor(r[activeFilter]),8); cnts[b]++; });
+    const col = CAT_COLORS[activeFilter];
+    distInst = new Chart(ctx, {
+      type:'bar',
+      data:{ labels:bins, datasets:[{
+        label:`${CAT_LABELS[activeFilter]} frequency`,
+        data:cnts, backgroundColor:col.solid, borderColor:col.border, borderWidth:1.5, borderRadius:4
+      }]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{ callbacks:{ label:ctx=>` ${ctx.raw} students in this range` } }
+        },
+        scales:{
+          y:{ beginAtZero:true, title:{display:true,text:'Students',color:tc,font:{size:11}}, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:11}} },
+          x:{ title:{display:true,text:'Daily Usage Range',color:tc,font:{size:11}}, grid:{display:false}, ticks:{color:tc,font:{size:11}} }
+        }
+      }
+    });
+    document.getElementById('distChartTitle').textContent = `${CAT_ICONS[activeFilter]} ${CAT_LABELS[activeFilter]} — Histogram`;
+    document.getElementById('chartFilterNote').textContent = `Isolated: ${CAT_LABELS[activeFilter]}`;
+    document.getElementById('chartFilterNote').style.display = 'inline';
+  } else {
+    const labels = dataset.map((_,i) => i+1);
+    const datasets = CATS.map(cat => ({
+      label:CAT_LABELS[cat],
+      data:[...dataset.map(r=>r[cat])].sort((a,b)=>a-b),
+      borderColor:CAT_COLORS[cat].border,
+      backgroundColor:CAT_COLORS[cat].light,
+      pointRadius:2, borderWidth:2, fill:false, tension:0.3
+    }));
+    distInst = new Chart(ctx, {
+      type:'line',
+      data:{ labels, datasets },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:'top', labels:{ color:tc, font:{size:11,weight:'600'}, boxWidth:12 } },
+          tooltip:{ mode:'index', intersect:false }
+        },
+        scales:{
+          y:{ beginAtZero:true, title:{display:true,text:'Hours/Day',color:tc,font:{size:11}}, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:11}} },
+          x:{ title:{display:true,text:'Students (sorted by usage)',color:tc,font:{size:11}}, grid:{display:false}, ticks:{color:tc,font:{size:10}} }
+        }
+      }
+    });
+    document.getElementById('distChartTitle').textContent = 'Distribution Overview';
+    document.getElementById('chartFilterNote').style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 12. HISTOGRAM CHART
+// ══════════════════════════════════════════════════════
+function renderHistogram() {
+  if (histInst) { histInst.destroy(); histInst = null; }
+  const ctx = document.getElementById('histogramChart').getContext('2d');
+  const tc  = getTextSecondary();
+  const bins = [];
+  for (let i=0; i<8; i++) bins.push(`${i}–${i+1}h`);
+
+  const catList = activeFilter !== 'all' ? [activeFilter] : CATS;
+  const datasets = catList.map(cat => {
+    const cnts = new Array(8).fill(0);
+    dataset.forEach(r => { const b=Math.min(Math.floor(r[cat]),7); cnts[b]++; });
+    return { label:CAT_LABELS[cat], data:cnts, backgroundColor:CAT_COLORS[cat].solid, borderColor:CAT_COLORS[cat].border, borderWidth:1.5, borderRadius:4 };
+  });
+
+  histInst = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:bins, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', labels:{ color:tc, font:{size:12,weight:'600'}, boxWidth:12 } },
+        tooltip:{ callbacks:{ label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} students` } }
+      },
+      scales:{
+        y:{ beginAtZero:true, title:{display:true,text:'Students',color:tc,font:{size:11}}, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:11}} },
+        x:{ title:{display:true,text:'Daily Usage Range',color:tc,font:{size:11}}, grid:{display:false}, ticks:{color:tc,font:{size:11}} }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// 13. RAW DATA TABLE
+// ══════════════════════════════════════════════════════
+function renderRawTable() {
+  const tbody = document.getElementById('rawTableBody');
+  tbody.innerHTML = '';
+  dataset.forEach((row, idx) => {
+    const total = (row.education+row.entertainment+row.social_media+row.communication).toFixed(1);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);">${row.id}</td>
+      <td class="${activeFilter==='education'?'col-active':''} text-blue">${row.education.toFixed(1)}</td>
+      <td class="${activeFilter==='entertainment'?'col-active':''} text-purple">${row.entertainment.toFixed(1)}</td>
+      <td class="${activeFilter==='social_media'?'col-active':''} text-green">${row.social_media.toFixed(1)}</td>
+      <td class="${activeFilter==='communication'?'col-active':''} text-orange">${row.communication.toFixed(1)}</td>
+      <td style="font-weight:700;">${total}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRecord(${idx})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('rawCountBadge').textContent = `${dataset.length} records`;
+}
+
+function updateActionsPanel() {
+  document.getElementById('actStudentCount').textContent = dataset.length;
+  document.getElementById('progressBar').style.width = Math.min((dataset.length/100)*100,100)+'%';
+}
+
+// ══════════════════════════════════════════════════════
+// 14. AUTOMATED INSIGHTS
+// ══════════════════════════════════════════════════════
+let insightUpdateTimer = null;
+function renderInsights(stats) {
+  const grid = document.getElementById('insightsGrid');
+  const insights = [];
+
+  if (activeFilter !== 'all') {
+    const cat = activeFilter;
+    const s   = stats[cat];
+    const icon = CAT_ICONS[cat];
+
+    insights.push({ icon, text: `<strong>${CAT_LABELS[cat]}</strong> averages <strong>${s.mean.toFixed(2)} hrs/day</strong> with a median of <strong>${s.median.toFixed(2)} hrs</strong>. Mode: <strong>${s.mode}</strong>. The ${s.median > s.mean ? 'median exceeds the mean, suggesting left-skew (more heavy users pulling the average down)' : 'mean exceeds the median, consistent with a right-skewed distribution (a few heavy users pulling the average up)'}.` });
+    insights.push({ icon:'📊', text: `Standard Deviation for <strong>${CAT_LABELS[cat]}</strong> is <strong>σ = ${s.stdDev.toFixed(3)}</strong>, giving a Coefficient of Variation of <strong>${s.cv.toFixed(1)}%</strong>. This is ${s.cv < 25 ? '<strong>low</strong> — usage is highly consistent across students' : s.cv < 45 ? '<strong>moderate</strong> — noticeable variation in student habits' : '<strong>high</strong> — significant spread; individual usage varies widely'}.` });
+    insights.push({ icon: s.skewness > 0.3 ? '➡️' : s.skewness < -0.3 ? '⬅️' : '↔️', text: `Skewness for <strong>${CAT_LABELS[cat]}</strong> is <strong>${(s.skewness>=0?'+':'')+s.skewness.toFixed(3)}</strong> — ${s.skewness > 0.3 ? 'positively (right) skewed: most students use it moderately but a minority of heavy users inflate the mean.' : s.skewness < -0.3 ? 'negatively (left) skewed: most students are relatively heavy users while a few light users drag the average down.' : 'approximately symmetric: usage is evenly distributed around the mean with no strong tail.'}` });
+    const ideal = IDEAL[cat];
+    const avgVsIdeal = s.mean - ideal;
+    insights.push({ icon:'🎯', text: `Cohort mean of <strong>${s.mean.toFixed(2)}h</strong> vs ideal target of <strong>${ideal}h</strong>: the cohort average is <strong>${avgVsIdeal > 0 ? '+'+avgVsIdeal.toFixed(2)+'h above' : Math.abs(avgVsIdeal).toFixed(2)+'h below'} the ideal</strong>. ${cat==='education'&&avgVsIdeal<0?'This indicates insufficient academic screen time on average.':(cat!=='education'&&avgVsIdeal>0)?'The cohort is exceeding healthy digital wellness limits.':'The cohort is close to the ideal benchmark.'}` });
+    document.getElementById('insightFilterNote').textContent = `Focused on: ${CAT_LABELS[cat]}`;
+    document.getElementById('insightFilterNote').style.display = 'inline';
+  } else {
+    document.getElementById('insightFilterNote').style.display = 'none';
+    const topCat  = CATS.map(c=>({c,v:stats[c].mean})).reduce((a,b)=>a.v>b.v?a:b);
+    insights.push({ icon:'📈', text:`<strong>${CAT_LABELS[topCat.c]}</strong> dominates daily internet usage with the highest average of <strong>${topCat.v.toFixed(2)} hrs/day</strong>. This suggests students allocate most of their online time to ${topCat.c==='entertainment'?'leisure and media consumption':topCat.c==='education'?'academic activities':topCat.c==='social_media'?'social networking platforms':'messaging and calls'}.` });
+
+    const highCV = CATS.map(c=>({c,v:stats[c].cv})).reduce((a,b)=>a.v>b.v?a:b);
+    const lowCV  = CATS.map(c=>({c,v:stats[c].cv})).reduce((a,b)=>a.v<b.v?a:b);
+    insights.push({ icon:'📊', text:`<strong>${CAT_LABELS[highCV.c]}</strong> shows the highest variability (CV = <strong>${highCV.v.toFixed(1)}%</strong>), indicating significant differences in how individual students use the internet for this purpose. <strong>${CAT_LABELS[lowCV.c]}</strong> is the most consistent habit (CV = <strong>${lowCV.v.toFixed(1)}%</strong>).` });
+
+    CATS.forEach(cat => {
+      const sk = stats[cat].skewness;
+      if (Math.abs(sk) > 0.3) {
+        insights.push({ icon: sk > 0 ? '➡️' : '⬅️', text:`<strong>${CAT_LABELS[cat]}</strong> is <strong>${sk>0?'positively (right)':'negatively (left)'} skewed</strong> (skew = ${sk>=0?'+':''}${sk.toFixed(2)}): ${sk>0?'most students use it moderately while a few heavy users pull the average up':'most students are heavy users while a few light users pull the average down'}. This affects the reliability of the mean as a representative measure.` });
+      }
+    });
+
+    const avgTotal = CATS.reduce((s,c)=>s+stats[c].mean,0);
+    insights.push({ icon:'⏱️', text:`On average, students spend <strong>${avgTotal.toFixed(2)} hours per day</strong> online across all categories. The ideal total for a balanced student is <strong>${Object.values(IDEAL).reduce((s,v)=>s+v,0).toFixed(1)}h/day</strong> — the cohort average is <strong>${(avgTotal - Object.values(IDEAL).reduce((s,v)=>s+v,0)).toFixed(2)}h above</strong> the healthy benchmark.` });
+  }
+
+  clearTimeout(insightUpdateTimer);
+  grid.innerHTML = insights.map(({icon,text}) => `
+    <div class="insight-item updating">
+      <div class="insight-icon">${icon}</div>
+      <div class="insight-text">${text}</div>
+    </div>
+  `).join('');
+
+  insightUpdateTimer = setTimeout(() => {
+    grid.querySelectorAll('.insight-item').forEach(el => el.classList.remove('updating'));
+  }, 700);
+}
+
+// ══════════════════════════════════════════════════════
+// 15. FILTER
+// ══════════════════════════════════════════════════════
+function applyFilter() {
+  activeFilter = document.getElementById('filterCategory').value;
+  renderAll();
+}
+
+function clearFilter() {
+  activeFilter = 'all';
+  document.getElementById('filterCategory').value = 'all';
+  renderAll();
+}
+
+function updateFilterUI() {
+  const filterWrap  = document.getElementById('navFilterWrap');
+  const banner      = document.getElementById('filterBanner');
+  const bannerText  = document.getElementById('filterBannerText');
+
+  if (activeFilter !== 'all') {
+    filterWrap.classList.add('has-filter');
+    banner.classList.remove('hidden');
+    bannerText.textContent = `Viewing: ${CAT_ICONS[activeFilter]} ${CAT_LABELS[activeFilter]} — KPIs, table column, and charts are focused on this category`;
+  } else {
+    filterWrap.classList.remove('has-filter');
+    banner.classList.add('hidden');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 16. SIMULATOR (Synced between Compact Card & Full Modal)
+// ══════════════════════════════════════════════════════
+const SIM_IDS = ['simEdu','simEnt','simSoc','simCom'];
+const MODAL_SIM_IDS = ['m_simEdu','m_simEnt','m_simSoc','m_simCom'];
+
+function onSliderChange(changedId) {
+  const others = SIM_IDS.filter(id => id !== changedId);
+  const sumOthers = others.reduce((s,id) => s + parseFloat(document.getElementById(id).value), 0);
+  const maxAllowed = Math.max(0, parseFloat((24 - sumOthers).toFixed(1)));
+  const el = document.getElementById(changedId);
+  if (parseFloat(el.value) > maxAllowed) el.value = maxAllowed.toFixed(1);
+
+  // Sync to modal counterpart
+  const mId = 'm_' + changedId;
+  const mEl = document.getElementById(mId);
+  if (mEl) mEl.value = el.value;
+
+  updateSim();
+}
+
+function onModalSliderChange(changedModalId) {
+  const baseId = changedModalId.replace('m_', '');
+  const others = MODAL_SIM_IDS.filter(id => id !== changedModalId);
+  const sumOthers = others.reduce((s,id) => s + parseFloat(document.getElementById(id).value), 0);
+  const maxAllowed = Math.max(0, parseFloat((24 - sumOthers).toFixed(1)));
+  const el = document.getElementById(changedModalId);
+  if (parseFloat(el.value) > maxAllowed) el.value = maxAllowed.toFixed(1);
+
+  // Sync to base counterpart
+  const baseEl = document.getElementById(baseId);
+  if (baseEl) baseEl.value = el.value;
+
+  updateSim();
+}
+
+function updateSim() {
+  const edu = parseFloat(document.getElementById('simEdu').value);
+  const ent = parseFloat(document.getElementById('simEnt').value);
+  const soc = parseFloat(document.getElementById('simSoc').value);
+  const com = parseFloat(document.getElementById('simCom').value);
+
+  // Update base slider labels
+  document.getElementById('simEduVal').textContent = edu.toFixed(1)+'h';
+  document.getElementById('simEntVal').textContent = ent.toFixed(1)+'h';
+  document.getElementById('simSocVal').textContent = soc.toFixed(1)+'h';
+  document.getElementById('simComVal').textContent = com.toFixed(1)+'h';
+
+  // Update modal slider labels
+  const mEduVal = document.getElementById('m_simEduVal');
+  if (mEduVal) mEduVal.textContent = edu.toFixed(1)+'h';
+  const mEntVal = document.getElementById('m_simEntVal');
+  if (mEntVal) mEntVal.textContent = ent.toFixed(1)+'h';
+  const mSocVal = document.getElementById('m_simSocVal');
+  if (mSocVal) mSocVal.textContent = soc.toFixed(1)+'h';
+  const mComVal = document.getElementById('m_simComVal');
+  if (mComVal) mComVal.textContent = com.toFixed(1)+'h';
+
+  // Sync modal sliders if values differ
+  const mEdu = document.getElementById('m_simEdu');
+  if (mEdu && parseFloat(mEdu.value) !== edu) mEdu.value = edu;
+  const mEnt = document.getElementById('m_simEnt');
+  if (mEnt && parseFloat(mEnt.value) !== ent) mEnt.value = ent;
+  const mSoc = document.getElementById('m_simSoc');
+  if (mSoc && parseFloat(mSoc.value) !== soc) mSoc.value = soc;
+  const mCom = document.getElementById('m_simCom');
+  if (mCom && parseFloat(mCom.value) !== com) mCom.value = com;
+
+  const total = edu + ent + soc + com;
+  const pct   = Math.min((total / 24) * 100, 100);
+  const cls   = total >= 24 ? 'danger' : total >= 20 ? 'warn' : 'ok';
+
+  // Update base progress bar
+  const barFill = document.getElementById('simProgressFill');
+  const barVal  = document.getElementById('simTotalBarVal');
+  const limBadge= document.getElementById('simLimitBadge');
+  barFill.style.width = pct + '%';
+  barFill.className   = `daily-progress-fill ${cls}`;
+  barVal.textContent  = `${total.toFixed(1)} / 24.0 hrs`;
+  barVal.className    = `sim-total-bar-value ${cls}`;
+  limBadge.classList.toggle('show', total >= 24);
+
+  // Update modal progress bar
+  const mBarFill = document.getElementById('m_simProgressFill');
+  const mBarVal  = document.getElementById('m_simTotalBarVal');
+  const mLimBadge= document.getElementById('m_simLimitBadge');
+  if (mBarFill) {
+    mBarFill.style.width = pct + '%';
+    mBarFill.className   = `daily-progress-fill ${cls}`;
+  }
+  if (mBarVal) {
+    mBarVal.textContent  = `${total.toFixed(1)} / 24.0 hrs`;
+    mBarVal.className    = `sim-total-bar-value ${cls}`;
+  }
+  if (mLimBadge) mLimBadge.classList.toggle('show', total >= 24);
+
+  // 3-way comparison in Modal
+  const stats = computeAllStats();
+  const mapping = [
+    { cat:'education',    youId:'scYouEdu', avgId:'scAvgEdu', deltaId:'scDeltaEdu' },
+    { cat:'entertainment',youId:'scYouEnt', avgId:'scAvgEnt', deltaId:'scDeltaEnt' },
+    { cat:'social_media', youId:'scYouSoc', avgId:'scAvgSoc', deltaId:'scDeltaSoc' },
+    { cat:'communication',youId:'scYouCom', avgId:'scAvgCom', deltaId:'scDeltaCom' },
+  ];
+  const youVals = { education:edu, entertainment:ent, social_media:soc, communication:com };
+
+  mapping.forEach(({cat, youId, avgId, deltaId}) => {
+    const you   = youVals[cat];
+    const avg   = stats[cat] ? stats[cat].mean : 0;
+    const ideal = IDEAL[cat];
+    const youEl = document.getElementById(youId);
+    const avgEl = document.getElementById(avgId);
+    const deltaEl = document.getElementById(deltaId);
+
+    if (youEl) youEl.textContent  = you.toFixed(1)+'h';
+    if (avgEl) avgEl.textContent  = avg.toFixed(1)+'h';
+
+    if (deltaEl) {
+      const delta = you - ideal;
+      const isEdu = cat === 'education';
+      if (isEdu) {
+        if (you >= ideal) deltaEl.innerHTML = `<span class="delta-badge delta-ok">✓ ideal</span>`;
+        else deltaEl.innerHTML = `<span class="delta-badge delta-below">-${(ideal-you).toFixed(1)}h</span>`;
+      } else {
+        if (you <= ideal) deltaEl.innerHTML = `<span class="delta-badge delta-ok">✓ ok</span>`;
+        else deltaEl.innerHTML = `<span class="delta-badge delta-above">+${(you-ideal).toFixed(1)}h</span>`;
+      }
+    }
+  });
+
+  // Action Plan in Modal
+  const plans = [];
+  if (edu < IDEAL.education) {
+    plans.push({ icon:'📚', text:`Increase <strong>Education</strong> by <strong>+${(IDEAL.education-edu).toFixed(1)}h/day</strong> to reach the ideal study benchmark of ${IDEAL.education}h.` });
+  } else {
+    plans.push({ icon:'✅', text:`<strong>Optimal Study Habit!</strong> Your education screen time of ${edu.toFixed(1)}h meets or exceeds the ideal ${IDEAL.education}h benchmark.` });
+  }
+  const excEnt = ent - IDEAL.entertainment;
+  const excSoc = soc - IDEAL.social_media;
+  if (excEnt > 0 || excSoc > 0) {
+    let parts = [];
+    if (excEnt > 0) parts.push(`Entertainment by <strong>-${excEnt.toFixed(1)}h/day</strong>`);
+    if (excSoc > 0) parts.push(`Social Media by <strong>-${excSoc.toFixed(1)}h/day</strong>`);
+    plans.push({ icon:'📉', text:`Reduce ${parts.join(' and ')} to meet healthy screen-time standards (≤${IDEAL.entertainment}h & ≤${IDEAL.social_media}h respectively).` });
+  } else {
+    plans.push({ icon:'✅', text:`<strong>Entertainment & Social Media within healthy limits.</strong> Keep it up!` });
+  }
+  const excCom = com - 2.0;
+  if (excCom > 0) {
+    plans.push({ icon:'💬', text:`Consider trimming passive messaging — reduce <strong>Communication</strong> by <strong>-${(com-1.5).toFixed(1)}h/day</strong> for a healthier balance.` });
+  } else {
+    plans.push({ icon:'✅', text:`<strong>Communication time is well-balanced</strong> at ${com.toFixed(1)}h/day.` });
+  }
+
+  const apEl = document.getElementById('simActionPlan');
+  if (apEl) {
+    apEl.innerHTML = plans.map(({icon,text})=>`
+      <div class="action-item"><span class="action-icon">${icon}</span><span>${text}</span></div>
+    `).join('');
+  }
+
+  // Wellness Score
+  const score = calcWellnessScore(edu, ent, soc, com);
+  const ring  = document.getElementById('wellnessRing');
+  const valEl = document.getElementById('wellnessScoreVal');
+  const statEl= document.getElementById('wellnessStatus');
+  const subEl = document.getElementById('wellnessSub');
+  const barEl = document.getElementById('wellnessBarFill');
+
+  if (valEl) valEl.textContent = score;
+  if (ring) ring.style.setProperty('--score-pct', score);
+
+  let statusText, statusColor, subText;
+  if (score >= 80) {
+    statusText  = 'Optimal Routine 🟢';
+    statusColor = '#2dd4a0';
+    subText     = 'Your daily internet habits align closely with the ideal productive student lifestyle.';
+  } else if (score >= 60) {
+    statusText  = 'Needs Rebalancing 🟡';
+    statusColor = '#f59e0b';
+    subText     = 'A few adjustments to your habits could significantly boost your academic productivity.';
+  } else {
+    statusText  = 'High Screen-Fatigue Risk 🔴';
+    statusColor = '#ef4444';
+    subText     = 'Current usage patterns suggest excessive non-educational screen time — rebalance recommended.';
+  }
+
+  if (ring) ring.style.setProperty('--score-color', statusColor);
+  if (statEl) {
+    statEl.textContent = statusText;
+    statEl.style.color = statusColor;
+  }
+  if (subEl) subEl.textContent = subText;
+  if (barEl) {
+    barEl.style.width      = score + '%';
+    barEl.style.background = statusColor;
+  }
+
+  // Update compact preview badge on the main dashboard card
+  const compactPill = document.getElementById('compactWellnessPill');
+  if (compactPill) {
+    compactPill.textContent = `Score: ${score}/100`;
+    compactPill.style.color = statusColor;
+    compactPill.style.background = statusColor + '22';
+  }
+  const compactDelta = document.getElementById('compactTotalDelta');
+  if (compactDelta) {
+    const avgTotal = CATS.reduce((s,c)=>s+(stats[c]?stats[c].mean:0),0);
+    const diff = total - avgTotal;
+    if (Math.abs(diff) < 0.3) compactDelta.textContent = '≈ student avg';
+    else if (diff > 0) compactDelta.textContent = `+${diff.toFixed(1)}h vs avg`;
+    else compactDelta.textContent = `${diff.toFixed(1)}h vs avg`;
+  }
+}
+
+function calcWellnessScore(edu, ent, soc, com) {
+  const eduScore = Math.min(edu / IDEAL.education, 1) * 30;
+  const entScore = ent <= IDEAL.entertainment ? 25 : Math.max(0, 25 * (1 - (ent - IDEAL.entertainment) / 3));
+  const socScore = soc <= IDEAL.social_media ? 25 : Math.max(0, 25 * (1 - (soc - IDEAL.social_media) / 2));
+  let comScore;
+  if (com >= 1.0 && com <= 1.5)    comScore = 20;
+  else if (com < 1.0)              comScore = (com / 1.0) * 20;
+  else                             comScore = Math.max(0, 20 * (1 - (com - 1.5) / 2.5));
+  return Math.min(100, Math.round(eduScore + entScore + socScore + comScore));
+}
+
+// ══════════════════════════════════════════════════════
+// 17. DATA MANAGEMENT
+// ══════════════════════════════════════════════════════
+function addRecord(e) {
+  e.preventDefault();
+  const edu = parseFloat(document.getElementById('fEdu').value);
+  const ent = parseFloat(document.getElementById('fEnt').value);
+  const soc = parseFloat(document.getElementById('fSoc').value);
+  const com = parseFloat(document.getElementById('fCom').value);
+  if ([edu,ent,soc,com].some(v => isNaN(v)||v<0||v>16)) {
+    showToast('⚠️ All values must be between 0 and 16.','warning'); return;
+  }
+  const newId = 'S' + String(dataset.length+1).padStart(2,'0');
+  dataset.push({ id:newId, education:edu, entertainment:ent, social_media:soc, communication:com });
+  saveData();
+  renderAll();
+  e.target.reset();
+  showToast(`✅ Record ${newId} added successfully.`,'success');
+}
+
+function deleteRecord(idx) {
+  dataset.splice(idx, 1);
+  dataset.forEach((r,i) => r.id = 'S'+String(i+1).padStart(2,'0'));
+  saveData();
+  renderAll();
+  showToast('🗑️ Record deleted.','neutral');
+}
+
+function exportCSV() {
+  const headers = ['student_id','education','entertainment','social_media','communication'];
+  const rows    = dataset.map(r => [r.id,r.education,r.entertainment,r.social_media,r.communication]);
+  const csv     = [headers,...rows].map(r=>r.join(',')).join('\n');
+  const blob    = new Blob([csv],{type:'text/csv'});
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href = url; a.download = 'student_internet_usage.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('📥 CSV exported successfully.','success');
+}
+
+// ══════════════════════════════════════════════════════
+// 18. COLLAPSIBLE
+// ══════════════════════════════════════════════════════
+function toggleCollapse() {
+  collapseOpen = !collapseOpen;
+  const content = document.getElementById('collapseContent');
+  const header  = document.getElementById('collapseHeader');
+  content.classList.toggle('collapsed', !collapseOpen);
+  content.style.maxHeight = collapseOpen ? '500px' : '0';
+  header.classList.toggle('collapsed', !collapseOpen);
+}
+
+// ══════════════════════════════════════════════════════
+// 19. THEME
+// ══════════════════════════════════════════════════════
+function toggleTheme() {
+  const root  = document.documentElement;
+  const isDark= root.getAttribute('data-theme') === 'dark';
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('netpulse_theme', isDark ? 'light' : 'dark');
+  setTimeout(() => {
+    const s = computeAllStats();
+    renderHeroChart(s); renderGroupedBar(s); renderDistribution(s); renderHistogram();
+  }, 50);
+}
+function getTextSecondary() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#8899b4';
+}
+
+// ══════════════════════════════════════════════════════
+// 20. MODALS
+// ══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if(e.target===overlay) closeModal(overlay.id); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));
+});
+
+// ══════════════════════════════════════════════════════
+// 21. SUPABASE
+// ══════════════════════════════════════════════════════
+async function supabaseConnect() {
+  const url   = document.getElementById('sbUrl').value.trim();
+  const key   = document.getElementById('sbKey').value.trim();
+  const table = document.getElementById('sbTable').value.trim() || 'student_internet_usage';
+  if (!url||!key) { showSbStatus('error','Please enter both URL and Anon Key.'); return; }
+  showSbStatus('loading','🔄 Connecting to Supabase...');
+  try {
+    const resp = await fetch(`${url}/rest/v1/${table}?select=*`, {
+      headers:{ 'apikey':key, 'Authorization':`Bearer ${key}`, 'Content-Type':'application/json' }
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    const rows = await resp.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      dataset = rows.map((r,i) => ({
+        id:r.student_id||'S'+String(i+1).padStart(2,'0'),
+        education:parseFloat(r.education)||0,
+        entertainment:parseFloat(r.entertainment)||0,
+        social_media:parseFloat(r.social_media)||0,
+        communication:parseFloat(r.communication)||0,
+      }));
+      saveData();
+      localStorage.setItem(SB_KEY, JSON.stringify({url,key,table}));
+      showSbStatus('success',`✅ Synced ${rows.length} records from Supabase.`);
+      renderAll();
+      closeModal('supabaseModal');
+      showToast(`☁️ Synced ${rows.length} records from Supabase.`,'success');
+    } else {
+      showSbStatus('error','No data found in table. Verify the table schema and RLS policies.');
+    }
+  } catch(err) {
+    showSbStatus('error','❌ Connection failed: '+err.message);
+  }
+}
+function supabaseClear() {
+  localStorage.removeItem(SB_KEY);
+  document.getElementById('sbUrl').value='';
+  document.getElementById('sbKey').value='';
+  showSbStatus('success','Config cleared. Using localStorage only.');
+}
+function showSbStatus(type, msg) {
+  const el = document.getElementById('sbStatus');
+  el.style.display='block'; el.className=`supabase-status ${type}`; el.textContent=msg;
+}
+
+// ══════════════════════════════════════════════════════
+// 22. TOAST
+// ══════════════════════════════════════════════════════
+function showToast(msg, type='neutral') {
+  const icons  = {success:'✅',warning:'⚠️',error:'❌',neutral:'ℹ️'};
+  const colors = {success:'var(--accent-green)',warning:'var(--accent-orange)',error:'#ef4444',neutral:'var(--accent-blue)'};
+  const container = document.getElementById('toastContainer');
+  const toast     = document.createElement('div');
+  toast.className = 'toast';
+  toast.style.cssText = `border-left: 3px solid ${colors[type]||colors.neutral};`;
+  toast.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity='0'; toast.style.transform='translateX(100px)'; toast.style.transition='all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// ══════════════════════════════════════════════════════
+// 23. INIT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('netpulse_theme');
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.getElementById('themeToggle').textContent = savedTheme==='light'?'☀️':'🌙';
+  }
+  try {
+    const cfg = JSON.parse(localStorage.getItem(SB_KEY)||'{}');
+    if (cfg.url) { document.getElementById('sbUrl').value=cfg.url; document.getElementById('sbKey').value=cfg.key||''; document.getElementById('sbTable').value=cfg.table||'student_internet_usage'; }
+  } catch(e){}
+
+  loadData();
+  renderAll();
+});
+</script>
+</body>
+</html>
