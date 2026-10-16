@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MDM Mini Project Booklet - Shashank Mahadev Nemane (B25CE1037)</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 12mm 15mm;
+    }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 12pt;
+      line-height: 1.25;
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+    .header-top {
+      text-align: right;
+      font-style: italic;
+      font-size: 11pt;
+      margin-bottom: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #000;
+    }
+    td {
+      border: 1px solid #000;
+      padding: 6px 10px;
+      vertical-align: top;
+      font-size: 12pt;
+    }
+    .title-cell {
+      font-size: 14pt;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+    }
+    .label {
+      font-weight: bold;
+    }
+    .info-line {
+      margin: 3px 0;
+    }
+    ol, ul {
+      margin: 3px 0 3px 22px;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 2px;
+    }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      font-style: italic;
+      font-size: 11pt;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-top">Miniproject: Mathematical Foundation For GenAI</div>
+
+  <table>
+    <tr>
+      <td class="title-cell">
+        INTERNET USAGE PATTERN AMONG STUDENTS
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="info-line"><span class="label">Name of Student:</span> Shashank Mahadev Nemane</div>
+        <div class="info-line"><span class="label">Class &amp; Batch :</span> S.Y. B.Tech Computer Engineering (SEM III)</div>
+        <div class="info-line"><span class="label">PRN No:</span> B25CE1037</div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">Abstract :</span><br>
+        University students rely heavily on the internet for daily academic and personal activities, primarily spanning four key behavioral dimensions: education, entertainment, social media, and communication. However, unstructured screen time often leads to digital fatigue and reduced academic productivity. This mini-project, <b>NetPulse: Student Internet Usage Analytics Platform</b>, aims to statistically model and analyze daily internet usage patterns across a cohort of 40 university students to identify behavioral trends, usage consistency, and distributional anomalies. Using a real-time client-side mathematical engine, the platform computes seven core descriptive statistical metrics for each usage category: Mean, Median, Mode, Range, Standard Deviation, Coefficient of Variation (CV%), and Skewness. While measures of central tendency establish baseline peer averages, the Coefficient of Variation normalizes dispersion across categories to identify which student habits are most consistent versus highly variable. Furthermore, Fisher-Pearson Skewness quantifies distributional asymmetry to distinguish between light-user clusters and heavy binge-usage outliers. To translate raw statistical findings into actionable insights, the web application features an interactive 24-hour-capped Habit Simulator. Instead of relying solely on potentially unhealthy peer averages, the simulator evaluates individual student inputs against both the cohort mean and ideal productivity benchmarks (&ge; 4.0 hrs/day for education, &le; 1.5 hrs/day for entertainment, and &le; 1.0 hr/day for social media), generating a dynamic Personal Action Plan and a 0–100 Digital Wellness Score. Hosted on GitHub Pages with local state persistence, the platform provides an intuitive, data-driven framework for student digital wellness.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">Objectives:</span>
+        <ol>
+          <li>To analyze daily student internet usage patterns across Education, Entertainment, Social Media, and Communication.</li>
+          <li>To dynamically compute Mean, Median, Mode, Range, Standard Deviation, Coefficient of Variation, and Skewness.</li>
+          <li>To compare behavioral consistency and outlier asymmetry across categories using CV% and Skewness.</li>
+          <li>To benchmark personal student screen-time habits against ideal productivity targets via a 24-hour Habit Simulator.</li>
+        </ol>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">Dataset –</span>
+        <ul>
+          <li><b>Type of dataset:</b> Quantitative, Multivariate Tabular Dataset (Continuous numerical data in hours/day, N = 40 students)</li>
+          <li><b>Source (link):</b> https://shashank-nemane.github.io/internet-usage-analysis/ (Repo: github.com/Shashank-Nemane/internet-usage-analysis)</li>
+          <li><b>Attributes (comma separated):</b> student_id, education_hrs, entertainment_hrs, social_media_hrs, communication_hrs, total_daily_hrs</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="info-line"><span class="label">Software (Front, Back):</span> <b>Frontend:</b> HTML5, CSS3, JavaScript (ES6+) | <b>Backend/Storage:</b> Browser LocalStorage &amp; GitHub Pages</div>
+        <div class="info-line"><span class="label">Library:</span> Chart.js (Interactive Canvas Visualizations), Custom ES6 Statistical Engine</div>
+        <div class="info-line"><span class="label">Functions Used:</span> calculateMean(), calculateMedian(), calculateMode(), calculateRange(), calculateStdDev(), calculateCV(), calculateSkewness(), updateSimulator(), calculateWellnessScore(), exportCSV()</div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">Methodology Used:</span><br>
+        1. <b>Data Structuring &amp; Validation:</b> Collecting daily hours across 4 usage categories for 40 students with a strict 24.0-hour daily ceiling.<br>
+        2. <b>Descriptive Statistical Analysis:</b> Computing central tendency (Mean, Median, Mode), dispersion (Range, Standard Deviation), relative consistency (Coefficient of Variation %), and distribution shape (Skewness) in real time.<br>
+        3. <b>Normative Benchmarking:</b> Evaluating individual simulated inputs against Cohort Means and Ideal Benchmarks to output actionable time-reallocation insights and a 0–100 Wellness Score.
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">Performance metrics:</span><br>
+        Mean (&mu;), Median, Mode, Range (Max &minus; Min), Sample Standard Deviation (&sigma;), Coefficient of Variation (CV% = [&sigma;/&mu;]&times;100), Sample Skewness Coefficient, and Digital Wellness Score (0–100%).
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">Results/ Visualizations:</span><br>
+        <b>Results:</b> Entertainment (Mean: 3.3h) and Education (Mean: 2.9h) represent the primary usage drivers, followed by Social Media (2.6h) and Communication (1.9h). CV% identifies the most consistent student habit, while positive skewness highlights heavy-user outliers.<br>
+        <b>Visualizations:</b> Grouped Bar Chart (Mean vs. Std Dev), Doughnut Chart (Category Share), Distribution Histogram, and Interactive 3-Way Habit Simulator Table (You vs. Cohort Avg vs. Ideal Target).
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label">References:</span><br>
+        1. Walpole, R. E., et al., <i>Probability &amp; Statistics for Engineers &amp; Scientists</i>, Pearson Education.<br>
+        2. Chart.js Official Documentation: https://www.chartjs.org/docs/latest/<br>
+        3. Live Project Deployment: https://shashank-nemane.github.io/internet-usage-analysis/
+      </td>
+    </tr>
+  </table>
+
+  <div class="footer-bottom">
+    <span>Academic Year 2026-27 SEM III</span>
+    <span>Department of Computer Engineering</span>
+  </div>
+
+</body>
+</html>

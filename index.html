@@ -7,754 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <style>
-    /* ─── CSS Custom Properties ─── */
-    :root {
-      --bg-primary: #0f1117;
-      --bg-secondary: #161b27;
-      --bg-card: #1e2535;
-      --bg-card-hover: #252d42;
-      --bg-input: #252d42;
-      --border: #2e3a52;
-      --border-light: #3a4a68;
-      --text-primary: #e8edf5;
-      --text-secondary: #8899b4;
-      --text-muted: #5a6b85;
-      --accent-blue: #4f8ef7;
-      --accent-purple: #9b59f5;
-      --accent-green: #2dd4a0;
-      --accent-orange: #f97316;
-      --accent-pink: #ec4899;
-      --accent-yellow: #f59e0b;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-      --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
-      --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-      --font-mono: 'JetBrains Mono', monospace;
-      --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
-    }
-    [data-theme="light"] {
-      --bg-primary: #f0f4ff;
-      --bg-secondary: #ffffff;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f8faff;
-      --bg-input: #f0f4ff;
-      --border: #d1daf0;
-      --border-light: #b8c8e8;
-      --text-primary: #0f1a2e;
-      --text-secondary: #4a5a7a;
-      --text-muted: #8a9ab8;
-      --shadow-sm: 0 1px 3px rgba(0,80,200,0.08);
-      --shadow-md: 0 4px 16px rgba(0,80,200,0.1);
-      --shadow-lg: 0 8px 32px rgba(0,80,200,0.12);
-    }
-
-    /* ─── Reset & Base ─── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
-      overflow-x: hidden;
-    }
-    ::selection { background: rgba(79,142,247,0.3); }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-primary); }
-    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
-
-    /* ════════════════════════════════════════════════════
-       LANDING PAGE OVERLAY
-    ════════════════════════════════════════════════════ */
-    .landing-overlay {
-      position: fixed; inset: 0; z-index: 9000;
-      background: #080c16;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px;
-      transition: opacity 0.6s ease, transform 0.6s ease;
-      overflow-y: auto;
-    }
-    .landing-overlay.hiding {
-      opacity: 0 !important;
-      transform: scale(1.04) !important;
-      pointer-events: none;
-    }
-    /* Decorative orbs */
-    .landing-overlay::before {
-      content: '';
-      position: fixed; width: 700px; height: 700px;
-      background: radial-gradient(circle, rgba(79,142,247,0.12) 0%, transparent 65%);
-      top: -250px; left: -200px;
-      animation: orb-float 10s ease-in-out infinite alternate;
-      pointer-events: none;
-    }
-    .landing-overlay::after {
-      content: '';
-      position: fixed; width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(155,89,245,0.10) 0%, transparent 65%);
-      bottom: -200px; right: -150px;
-      animation: orb-float 13s ease-in-out infinite alternate-reverse;
-      pointer-events: none;
-    }
-    @keyframes orb-float {
-      0%   { transform: translate(0, 0); }
-      100% { transform: translate(40px, 30px); }
-    }
-    .landing-content {
-      max-width: 840px; width: 100%;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 18px; text-align: center;
-      position: relative; z-index: 1;
-      padding: 16px 0 24px;
-    }
-    .landing-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 5px 14px; border-radius: 20px;
-      border: 1px solid rgba(79,142,247,0.4);
-      background: rgba(79,142,247,0.08);
-      font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
-      text-transform: uppercase; color: #4f8ef7;
-    }
-    .landing-badge-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #4f8ef7;
-      box-shadow: 0 0 8px #4f8ef7;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-    .landing-title-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      margin: 2px 0 4px;
-    }
-    .landing-title {
-      font-size: clamp(48px, 8vw, 86px);
-      font-weight: 900; letter-spacing: -2px; line-height: 1.1;
-      background: linear-gradient(135deg, #e8edf5 0%, #4f8ef7 40%, #9b59f5 80%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 2px;
-      animation: shimmer-text 4s ease-in-out infinite alternate;
-    }
-    @keyframes shimmer-text {
-      0%   { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
-    }
-    .landing-subtitle {
-      font-size: clamp(15px, 2vw, 18px); font-weight: 500; color: #8899b4;
-      letter-spacing: -0.1px; margin-top: 0; line-height: 1.35;
-    }
-    .landing-concept {
-      background: rgba(30,37,53,0.8);
-      border: 1px solid rgba(46,58,82,0.8);
-      border-radius: 16px; padding: 20px 28px;
-      text-align: left; max-width: 720px; width: 100%;
-      backdrop-filter: blur(8px);
-    }
-    .landing-concept-title {
-      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: #4f8ef7; margin-bottom: 10px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .landing-concept-title::before {
-      content: ''; display: inline-block;
-      width: 24px; height: 2px; background: #4f8ef7;
-    }
-    .landing-concept-text {
-      font-size: 14px; color: #a8b8d0; line-height: 1.65;
-    }
-    .landing-concept-text strong { color: #e8edf5; }
-    
-    /* CTA button placed right in center below concept */
-    .landing-cta {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      margin: 4px 0;
-    }
-    .enter-btn {
-      padding: 15px 46px; border-radius: 50px;
-      background: linear-gradient(135deg, #4f8ef7, #9b59f5);
-      color: #fff; font-size: 16px; font-weight: 800;
-      border: none; cursor: pointer; letter-spacing: -0.2px;
-      box-shadow: 0 0 35px rgba(79,142,247,0.35), 0 8px 30px rgba(0,0,0,0.4);
-      transition: all 0.3s ease;
-      animation: enter-glow 2.5s ease-in-out infinite alternate;
-      position: relative; overflow: hidden;
-    }
-    .enter-btn::after {
-      content: '';
-      position: absolute; inset: -2px;
-      background: linear-gradient(135deg, #4f8ef7, #9b59f5, #4f8ef7);
-      border-radius: 50px; z-index: -1;
-      animation: enter-glow 2.5s ease-in-out infinite alternate;
-    }
-    @keyframes enter-glow {
-      0%   { box-shadow: 0 0 30px rgba(79,142,247,0.4), 0 8px 28px rgba(0,0,0,0.4); }
-      100% { box-shadow: 0 0 55px rgba(155,89,245,0.5), 0 8px 36px rgba(0,0,0,0.5); }
-    }
-    .enter-btn:hover { transform: translateY(-2px) scale(1.02); }
-    .enter-hint { font-size: 11px; color: #5a6b85; }
-
-    .landing-cats {
-      display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
-      width: 100%;
-    }
-    @media(max-width:640px){ .landing-cats{ grid-template-columns: repeat(2,1fr); } }
-    .landing-cat {
-      background: rgba(30,37,53,0.7);
-      border: 1px solid rgba(46,58,82,0.8);
-      border-radius: 12px; padding: 12px 10px;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      transition: all 0.3s ease;
-    }
-    .landing-cat:hover { transform: translateY(-3px); }
-    .landing-cat-icon { font-size: 24px; }
-    .landing-cat-label { font-size: 11px; font-weight: 700; }
-    .landing-cat-sub { font-size: 9px; color: #5a6b85; }
-    .landing-cat.blue   { border-color: rgba(79,142,247,0.3); }
-    .landing-cat.purple { border-color: rgba(155,89,245,0.3); }
-    .landing-cat.green  { border-color: rgba(45,212,160,0.3); }
-    .landing-cat.orange { border-color: rgba(249,115,22,0.3); }
-    .landing-cat.blue   .landing-cat-label { color: #4f8ef7; }
-    .landing-cat.purple .landing-cat-label { color: #9b59f5; }
-    .landing-cat.green  .landing-cat-label { color: #2dd4a0; }
-    .landing-cat.orange .landing-cat-label { color: #f97316; }
-
-    .landing-metrics {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
-    }
-    .landing-metric-tag {
-      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      color: #8899b4;
-    }
-    .landing-footer-meta {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
-      font-size: 11px; color: #5a6b85; padding-top: 6px;
-      border-top: 1px solid rgba(255,255,255,0.06); width: 100%;
-    }
-
-    /* ─── Navbar ─── */
-    .navbar {
-      position: sticky; top: 0; z-index: 100;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 0 24px;
-      height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px;
-    }
-    .brand {
-      display: flex; align-items: center; gap: 10px;
-      font-weight: 800; font-size: 16px; letter-spacing: -0.3px;
-      flex-shrink: 0; cursor: pointer;
-    }
-    .brand:hover span { opacity: 0.8; }
-    .brand-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--accent-blue);
-      box-shadow: 0 0 12px var(--accent-blue);
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-      0%,100% { box-shadow: 0 0 8px var(--accent-blue); }
-      50% { box-shadow: 0 0 20px var(--accent-blue), 0 0 40px rgba(79,142,247,0.3); }
-    }
-    .brand span { color: var(--accent-blue); transition: opacity 0.2s; }
-    .nav-actions {
-      display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
-    }
-    .nav-filter select {
-      background: var(--bg-input); border: 1px solid var(--border);
-      color: var(--text-primary); border-radius: var(--radius-sm);
-      padding: 6px 10px; font-size: 13px; cursor: pointer;
-      outline: none; transition: var(--transition);
-    }
-    .nav-filter select:focus { border-color: var(--accent-blue); }
-    .nav-filter.has-filter select {
-      border-color: var(--accent-blue);
-      background: rgba(79,142,247,0.1);
-      color: var(--accent-blue);
-      font-weight: 600;
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 14px; border-radius: var(--radius-sm);
-      font-size: 13px; font-weight: 500; cursor: pointer;
-      border: 1px solid transparent; transition: var(--transition);
-      outline: none; text-decoration: none; white-space: nowrap;
-    }
-    .btn-ghost { background: transparent; border-color: var(--border); color: var(--text-secondary); }
-    .btn-ghost:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-light); }
-    .btn-primary { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
-    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: var(--shadow-md); }
-    .btn-sm { padding: 5px 10px; font-size: 12px; }
-    .btn-danger { background: rgba(239,68,68,0.15); color: #ef4444; border-color: rgba(239,68,68,0.3); }
-    .btn-danger:hover { background: rgba(239,68,68,0.25); }
-    .btn-success { background: rgba(45,212,160,0.15); color: var(--accent-green); border-color: rgba(45,212,160,0.3); }
-    .btn-success:hover { background: rgba(45,212,160,0.25); }
-    .btn-warning { background: rgba(249,115,22,0.15); color: var(--accent-orange); border-color: rgba(249,115,22,0.3); }
-    .btn-warning:hover { background: rgba(249,115,22,0.25); }
-    .theme-toggle {
-      width: 36px; height: 36px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--bg-input); border: 1px solid var(--border);
-      cursor: pointer; font-size: 16px; transition: var(--transition); flex-shrink: 0;
-    }
-    .theme-toggle:hover { background: var(--bg-card-hover); border-color: var(--accent-blue); }
-
-    /* ─── Filter Banner ─── */
-    .filter-banner {
-      background: linear-gradient(90deg, rgba(79,142,247,0.1), transparent);
-      border-bottom: 1px solid rgba(79,142,247,0.2);
-      padding: 8px 24px;
-      display: flex; align-items: center; gap: 10px;
-      font-size: 13px; font-weight: 600; color: var(--accent-blue);
-      transition: all 0.3s; overflow: hidden;
-    }
-    .filter-banner.hidden { display: none; }
-    .filter-banner-close {
-      margin-left: auto; cursor: pointer; opacity: 0.6; font-size: 14px;
-      padding: 2px 6px; border-radius: 4px;
-    }
-    .filter-banner-close:hover { opacity: 1; background: rgba(79,142,247,0.15); }
-
-    /* ─── Main Layout ─── */
-    .main { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
-
-    /* ─── KPI Cards ─── */
-    .kpi-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 16px; margin-bottom: 24px;
-    }
-    @media(max-width:900px){ .kpi-grid{ grid-template-columns: repeat(2,1fr); } }
-    @media(max-width:480px){ .kpi-grid{ grid-template-columns: 1fr; } }
-    .kpi-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 20px;
-      position: relative; overflow: hidden;
-      transition: var(--transition); cursor: default;
-    }
-    .kpi-card:hover { background: var(--bg-card-hover); border-color: var(--border-light); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-    .kpi-card.blue::before   { background: linear-gradient(90deg, var(--accent-blue),   #7ab3ff); }
-    .kpi-card.purple::before { background: linear-gradient(90deg, var(--accent-purple), #c47cff); }
-    .kpi-card.green::before  { background: linear-gradient(90deg, var(--accent-green),  #5effd4); }
-    .kpi-card.orange::before { background: linear-gradient(90deg, var(--accent-orange), #fb923c); }
-    .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
-    .kpi-value { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 6px; letter-spacing: -0.5px; }
-    .kpi-card.blue   .kpi-value { color: var(--accent-blue); }
-    .kpi-card.purple .kpi-value { color: var(--accent-purple); }
-    .kpi-card.green  .kpi-value { color: var(--accent-green); }
-    .kpi-card.orange .kpi-value { color: var(--accent-orange); }
-    .kpi-sub { font-size: 12px; color: var(--text-muted); }
-    .kpi-icon { position: absolute; top: 16px; right: 16px; font-size: 28px; opacity: 0.15; }
-
-    /* ════════════════════════════════════════════════════
-       HERO SPLIT (BALANCED EQUAL HEIGHT — ZERO EMPTY SPACE)
-    ════════════════════════════════════════════════════ */
-    .hero-split {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 20px; margin-bottom: 32px;
-      align-items: stretch; /* equal height cards */
-    }
-    @media(max-width:900px){ .hero-split{ grid-template-columns:1fr; } }
-    .card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 20px;
-      transition: var(--transition);
-    }
-    .hero-chart-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .hero-chart-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      gap: 6px;
-      padding-top: 12px;
-      margin-top: 8px;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
-    }
-    .card-title {
-      font-size: 14px; font-weight: 700; letter-spacing: -0.2px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .card-title .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dot-blue   { background: var(--accent-blue); }
-    .dot-purple { background: var(--accent-purple); }
-    .dot-green  { background: var(--accent-green); }
-    .dot-orange { background: var(--accent-orange); }
-    .chart-wrap { position: relative; height: 250px; }
-
-    /* ─── Compact Simulator on Dashboard (Zero Empty Space) ─── */
-    .sim-compact-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .simulator { display: flex; flex-direction: column; gap: 10px; }
-    .sim-slider-group label {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; font-weight: 600; margin-bottom: 4px;
-    }
-    .sim-slider-group label span.val { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
-    input[type=range] {
-      width: 100%; height: 6px; border-radius: 3px;
-      appearance: none; -webkit-appearance: none;
-      background: var(--border); cursor: pointer; outline: none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      appearance: none; width: 16px; height: 16px;
-      border-radius: 50%; cursor: pointer; transition: var(--transition);
-    }
-    .sim-edu   input[type=range] { accent-color: var(--accent-blue); }
-    .sim-edu   input[type=range]::-webkit-slider-thumb { background: var(--accent-blue); }
-    .sim-ent   input[type=range] { accent-color: var(--accent-purple); }
-    .sim-ent   input[type=range]::-webkit-slider-thumb { background: var(--accent-purple); }
-    .sim-soc   input[type=range] { accent-color: var(--accent-green); }
-    .sim-soc   input[type=range]::-webkit-slider-thumb { background: var(--accent-green); }
-    .sim-com   input[type=range] { accent-color: var(--accent-orange); }
-    .sim-com   input[type=range]::-webkit-slider-thumb { background: var(--accent-orange); }
-
-    /* 24hr Total Progress Bar */
-    .sim-total-bar-wrap {
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 8px 12px;
-    }
-    .sim-total-bar-header {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; font-weight: 700; margin-bottom: 6px;
-    }
-    .sim-total-bar-label { color: var(--text-secondary); }
-    .sim-total-bar-value { font-family: var(--font-mono); font-size: 12px; }
-    .sim-total-bar-value.ok     { color: var(--accent-green); }
-    .sim-total-bar-value.warn   { color: var(--accent-yellow); }
-    .sim-total-bar-value.danger { color: #ef4444; }
-    .daily-progress-track {
-      height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
-    }
-    .daily-progress-fill {
-      height: 100%; border-radius: 3px;
-      transition: width 0.3s ease, background 0.3s;
-    }
-    .daily-progress-fill.ok     { background: linear-gradient(90deg, #2dd4a0, #22d3ee); }
-    .daily-progress-fill.warn   { background: linear-gradient(90deg, #f59e0b, #fb923c); }
-    .daily-progress-fill.danger { background: linear-gradient(90deg, #ef4444, #dc2626); }
-    .sim-limit-badge {
-      display: none; margin-top: 4px;
-      font-size: 11px; font-weight: 700; color: #ef4444;
-      text-align: center; letter-spacing: 0.5px;
-      animation: blink-badge 1s step-end infinite;
-    }
-    .sim-limit-badge.show { display: block; }
-    @keyframes blink-badge {
-      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
-    }
-
-    /* Compact Expand Banner at bottom of compact card */
-    .sim-compact-footer {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: var(--transition);
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .sim-compact-footer:hover {
-      border-color: var(--accent-blue);
-      background: var(--bg-card-hover);
-      transform: translateY(-1px);
-    }
-
-    /* ═══════════════════════════════════════════
-       EXPANDED SIMULATOR MODAL COMPONENTS
-    ═══════════════════════════════════════════ */
-    .sim-compare-wrap {
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-md); overflow: hidden;
-    }
-    .sim-compare-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px; border-bottom: 1px solid var(--border);
-    }
-    .sim-compare-title { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); }
-    .sim-compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .sim-compare-table th {
-      padding: 7px 10px; font-size: 10px; font-weight: 700;
-      letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted);
-      border-bottom: 1px solid var(--border); text-align: center;
-    }
-    .sim-compare-table th:first-child { text-align: left; }
-    .sim-compare-table td {
-      padding: 8px 10px; border-bottom: 1px solid rgba(46,58,82,0.5);
-      text-align: center; font-family: var(--font-mono); font-size: 12px;
-    }
-    .sim-compare-table tbody tr:last-child td { border-bottom: none; }
-    .sim-compare-table td:first-child { text-align: left; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; }
-    .you-val { font-weight: 800; font-size: 13px; }
-    .avg-val { color: var(--text-muted); }
-    .ideal-val { color: var(--accent-green); font-weight: 600; }
-    .delta-badge {
-      display: inline-flex; align-items: center; gap: 2px;
-      padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 700;
-      white-space: nowrap;
-    }
-    .delta-ok     { background: rgba(45,212,160,0.15); color: var(--accent-green); }
-    .delta-above  { background: rgba(239,68,68,0.15);  color: #ef4444; }
-    .delta-below  { background: rgba(245,158,11,0.15); color: var(--accent-yellow); }
-
-    /* Action Plan */
-    .sim-action-plan {
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 12px 14px;
-    }
-    .sim-action-title { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
-    .action-items { display: flex; flex-direction: column; gap: 7px; }
-    .action-item {
-      font-size: 13px; line-height: 1.55; color: var(--text-secondary);
-      display: flex; gap: 8px; align-items: flex-start;
-    }
-    .action-item .action-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
-    .action-item strong { color: var(--text-primary); }
-
-    /* Wellness Score */
-    .wellness-wrap {
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 14px;
-      display: flex; align-items: center; gap: 14px;
-    }
-    .wellness-score-ring {
-      width: 64px; height: 64px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 900; font-family: var(--font-mono);
-      flex-shrink: 0; position: relative;
-      background: conic-gradient(var(--score-color, #2dd4a0) calc(var(--score-pct, 70) * 1%), var(--border) 0%);
-      transition: all 0.5s ease;
-    }
-    .wellness-score-ring::before {
-      content: ''; position: absolute; width: 50px; height: 50px;
-      border-radius: 50%; background: var(--bg-input);
-    }
-    .wellness-score-inner {
-      position: relative; z-index: 1; font-size: 16px; font-weight: 800;
-      font-family: var(--font-mono);
-    }
-    .wellness-info { flex: 1; }
-    .wellness-label { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .wellness-status { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
-    .wellness-sub { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-    .wellness-bar { height: 5px; background: var(--border); border-radius: 3px; margin-top: 8px; overflow: hidden; }
-    .wellness-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease, background 0.5s; }
-
-    /* ─── Badges ─── */
-    .badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-    .badge-above   { background: rgba(239,68,68,0.15);   color: #ef4444; }
-    .badge-below   { background: rgba(45,212,160,0.15);  color: var(--accent-green); }
-    .badge-neutral { background: rgba(245,158,11,0.15);  color: var(--accent-yellow); }
-    .badge-optimal { background: rgba(45,212,160,0.15);  color: var(--accent-green); }
-
-    /* ─── Chart Toggle ─── */
-    .chart-toggle { display: flex; gap: 6px; }
-    .chart-toggle-btn {
-      padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
-      background: transparent; border: 1px solid var(--border);
-      color: var(--text-muted); cursor: pointer; transition: var(--transition);
-    }
-    .chart-toggle-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
-
-    /* ─── Section headers ─── */
-    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    .section-title { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
-    .section-badge { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); }
-    .section-divider { flex: 1; height: 1px; background: var(--border); min-width: 20px; }
-    .mb-24 { margin-bottom: 24px; }
-
-    /* ─── Stats Table ─── */
-    .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead tr { background: var(--bg-input); }
-    thead th {
-      padding: 12px 16px; text-align: left;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
-      color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap;
-    }
-    tbody tr { border-bottom: 1px solid var(--border); transition: var(--transition); }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--bg-card-hover); }
-    tbody td { padding: 11px 16px; font-family: var(--font-mono); font-size: 13px; }
-    tbody td:first-child { font-family: 'Inter', sans-serif; font-weight: 600; color: var(--text-secondary); font-size: 13px; }
-    /* Column highlight for active filter */
-    .col-active { background: rgba(79,142,247,0.07) !important; }
-    .col-active-header { color: var(--accent-blue) !important; background: rgba(79,142,247,0.1) !important; }
-    .highlight-max { background: rgba(79,142,247,0.12); color: var(--accent-blue); border-radius: 4px; padding: 2px 6px; font-weight: 700; }
-    .highlight-min { background: rgba(45,212,160,0.12); color: var(--accent-green); border-radius: 4px; padding: 2px 6px; font-weight: 700; }
-
-    /* ─── Charts Grid ─── */
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    @media(max-width:800px){ .charts-grid{ grid-template-columns:1fr; } }
-    .chart-full { grid-column: 1 / -1; }
-    .chart-wrap-tall { position: relative; height: 300px; }
-
-    /* ─── Form Panel ─── */
-    .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    @media(max-width:800px){ .panel-grid{ grid-template-columns:1fr; } }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 12px; font-weight: 600; letter-spacing: 0.4px; color: var(--text-secondary); }
-    .form-group input[type=number] {
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 9px 12px;
-      color: var(--text-primary); font-size: 13px; font-family: var(--font-mono);
-      outline: none; transition: var(--transition); width: 100%;
-    }
-    .form-group input[type=number]:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(79,142,247,0.12); }
-    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-
-    /* ─── Raw Table ─── */
-    .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 4px 0; user-select: none; }
-    .collapsible-header:hover .section-title { color: var(--accent-blue); }
-    .collapse-icon { font-size: 16px; transition: transform 0.2s; color: var(--text-muted); }
-    .collapsed .collapse-icon { transform: rotate(-90deg); }
-    .collapsible-content { overflow: hidden; transition: all 0.3s ease; }
-    .collapsible-content.collapsed { max-height: 0 !important; opacity: 0; }
-    .raw-table-wrap { max-height: 380px; overflow-y: auto; border-radius: var(--radius-md); border: 1px solid var(--border); }
-    .raw-table td:last-child { text-align: right; }
-
-    /* ─── Insights with Pulse Animation ─── */
-    .insights-grid { display: flex; flex-direction: column; gap: 10px; }
-    .insight-item {
-      display: flex; gap: 12px; align-items: flex-start;
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 14px; transition: border-color 0.3s;
-    }
-    .insight-item:hover { border-color: var(--border-light); }
-    .insight-item.updating {
-      animation: insight-pulse 0.6s ease-out;
-    }
-    @keyframes insight-pulse {
-      0%   { border-color: var(--accent-blue); box-shadow: 0 0 0 0 rgba(79,142,247,0.4); background: rgba(79,142,247,0.06); }
-      50%  { border-color: var(--accent-blue); box-shadow: 0 0 0 6px rgba(79,142,247,0); }
-      100% { border-color: var(--border); box-shadow: none; background: var(--bg-input); }
-    }
-    .insight-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-    .insight-text { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
-    .insight-text strong { color: var(--text-primary); }
-
-    /* ─── Modals ─── */
-    .modal-overlay {
-      position: fixed; inset: 0; z-index: 999;
-      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-    }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal {
-      background: var(--bg-secondary); border: 1px solid var(--border);
-      border-radius: var(--radius-xl); padding: 26px;
-      max-width: 480px; width: 100%;
-      transform: translateY(16px) scale(0.97); transition: transform 0.2s;
-      max-height: 90vh; overflow-y: auto;
-    }
-    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .modal-title { font-size: 17px; font-weight: 800; }
-    .modal-close {
-      width: 32px; height: 32px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--bg-input); border: 1px solid var(--border);
-      cursor: pointer; font-size: 16px; transition: var(--transition); color: var(--text-secondary);
-    }
-    .modal-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
-    .info-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-    .info-row:last-child { border-bottom: none; }
-    .info-label { font-weight: 700; color: var(--text-secondary); min-width: 100px; }
-    .info-value { color: var(--text-primary); line-height: 1.5; }
-    .info-accent { color: var(--accent-blue); font-weight: 700; }
-    .supabase-form { display: flex; flex-direction: column; gap: 14px; }
-    .supabase-form input {
-      background: var(--bg-input); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 10px 14px;
-      color: var(--text-primary); font-size: 13px; font-family: var(--font-mono);
-      outline: none; transition: var(--transition); width: 100%;
-    }
-    .supabase-form input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(79,142,247,0.12); }
-    .supabase-status { font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 8px; }
-    .supabase-status.success { background: rgba(45,212,160,0.1); color: var(--accent-green); }
-    .supabase-status.error   { background: rgba(239,68,68,0.1);  color: #ef4444; }
-    .supabase-status.loading { background: rgba(79,142,247,0.1); color: var(--accent-blue); }
-
-    /* ─── Footer ─── */
-    footer { background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 28px 24px; margin-top: 40px; text-align: center; }
-    .footer-inner { max-width: 1400px; margin: 0 auto; }
-    .footer-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
-    .footer-problem { max-width: 700px; margin: 0 auto; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-    .footer-copy { font-size: 11px; color: var(--text-muted); margin-top: 16px; opacity: 0.6; }
-
-    /* ─── Toast ─── */
-    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-    .toast {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 12px 16px;
-      font-size: 13px; display: flex; align-items: center; gap: 10px;
-      box-shadow: var(--shadow-lg); animation: slide-in 0.3s ease;
-      min-width: 240px; max-width: 320px;
-    }
-    @keyframes slide-in { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-    /* ─── Utilities ─── */
-    .text-blue   { color: var(--accent-blue); }
-    .text-purple { color: var(--accent-purple); }
-    .text-green  { color: var(--accent-green); }
-    .text-orange { color: var(--accent-orange); }
-    .hidden { display: none !important; }
-    .label-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .tag-edu { background: rgba(79,142,247,0.15); color: var(--accent-blue); }
-    .tag-ent { background: rgba(155,89,245,0.15); color: var(--accent-purple); }
-    .tag-soc { background: rgba(45,212,160,0.15); color: var(--accent-green); }
-    .tag-com { background: rgba(249,115,22,0.15); color: var(--accent-orange); }
-    .progress-bar-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .progress-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-
-    @media(max-width:600px){
-      .navbar { padding: 0 14px; }
-      .main { padding: 16px 14px; }
-      .modal { padding: 20px; }
-      .kpi-value { font-size: 22px; }
-      .brand { font-size: 14px; }
-      .form-grid { grid-template-columns: 1fr; }
-      .nav-actions { gap: 6px; }
-      .btn { padding: 6px 10px; font-size: 12px; }
-    }
-  </style>
 </head>
 <body>
 
 <!-- ══════════════════════════════════════════════════════
-     LANDING PAGE OVERLAY (FIXED TITLE SPACING & CENTERED BUTTON)
+     LANDING PAGE OVERLAY (THE IDEA)
 ══════════════════════════════════════════════════════ -->
 <div id="landingOverlay" class="landing-overlay">
   <div class="landing-content">
@@ -777,7 +36,7 @@
         <br><br>
         NetPulse analyzes daily internet usage across <strong>four key behavioural dimensions</strong> — Education, Entertainment, Social Media, and Communication — using seven rigorous statistical lenses: <strong>Mean, Median, Mode, Range, Standard Deviation, Coefficient of Variation, and Skewness</strong>.
         <br><br>
-        The goal: uncover hidden usage patterns, compare individual habits against peer benchmarks and <em>ideal productivity targets</em>, and translate raw numbers into <strong>actionable digital wellness insights</strong> for students and institutions.
+        The platform features a high-performance <strong>C++ REST Backend (Port 8080)</strong> paired with a resilient, reactive frontend. Uncover behavioral trends, evaluate individual routines against peer averages and <em>ideal productivity benchmarks</em>, and receive a live <strong>0–100 Digital Wellness Score</strong> with an actionable plan.
       </div>
     </div>
 
@@ -786,7 +45,7 @@
       <button class="enter-btn" onclick="enterDashboard()">
         Enter Dashboard &nbsp;→
       </button>
-      <div class="enter-hint">40 pre-loaded students · Live recalculation · Dark &amp; Light mode</div>
+      <div class="enter-hint">200 student records · Live C++ REST Backend · Full Resilience &amp; Fallback</div>
     </div>
 
     <div class="landing-cats">
@@ -841,7 +100,15 @@
     <span>NetPulse</span>: Student Internet Analytics
   </div>
   <div class="nav-actions">
+    <!-- C++ Backend Connection Status Pill -->
+    <div class="backend-status-pill offline" id="backendStatusPill" onclick="checkBackendConnection(true)" title="Click to test C++ Backend connection (http://localhost:8080)">
+      <span class="status-dot"></span>
+      <span id="backendStatusText">Connecting...</span>
+    </div>
+
     <button class="btn btn-ghost btn-sm" onclick="showLanding()" title="Back to The Idea screen">🏠 The Idea</button>
+
+    <!-- Category Filter Dropdown -->
     <div class="nav-filter" id="navFilterWrap">
       <select id="filterCategory" onchange="applyFilter()">
         <option value="all">All Categories</option>
@@ -851,6 +118,7 @@
         <option value="communication">💬 Communication</option>
       </select>
     </div>
+
     <button class="btn btn-ghost btn-sm" onclick="openModal('projectModal')">ℹ️ Project Info</button>
     <button class="btn btn-ghost btn-sm" onclick="openModal('supabaseModal')">⚡ Supabase</button>
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" id="themeToggle">🌙</div>
@@ -922,10 +190,10 @@
       </div>
       <!-- Balanced Category Footer Bar -->
       <div class="hero-chart-footer" id="heroChartFooter">
-        <span class="label-tag tag-edu">📚 Edu: <strong id="hfEdu">2.7h</strong></span>
-        <span class="label-tag tag-ent">🎬 Ent: <strong id="hfEnt">3.2h</strong></span>
-        <span class="label-tag tag-soc">📱 Soc: <strong id="hfSoc">2.6h</strong></span>
-        <span class="label-tag tag-com">💬 Com: <strong id="hfCom">1.9h</strong></span>
+        <span class="label-tag tag-edu">📚 Edu: <strong id="hfEdu">2.9h</strong></span>
+        <span class="label-tag tag-ent">🎬 Ent: <strong id="hfEnt">3.3h</strong></span>
+        <span class="label-tag tag-soc">📱 Soc: <strong id="hfSoc">2.5h</strong></span>
+        <span class="label-tag tag-com">💬 Com: <strong id="hfCom">1.8h</strong></span>
       </div>
     </div>
 
@@ -943,7 +211,7 @@
         </div>
 
         <div class="simulator">
-          <!-- 4 Sliders -->
+          <!-- 4 Sliders (Strict 24.0h limit enforced) -->
           <div class="sim-slider-group sim-edu">
             <label>
               <span class="label-tag tag-edu">📚 Education</span>
@@ -1004,10 +272,10 @@
     </div>
   </div><!-- /.hero-split -->
 
-  <!-- Statistical Comparison Table -->
+  <!-- Master Statistical Comparison Table -->
   <div class="section-header mb-24">
     <div class="section-title">📊 Master Statistical Comparison</div>
-    <div class="section-badge" id="statsStudentCount">40 students</div>
+    <div class="section-badge" id="statsStudentCount">200 students</div>
     <div class="section-divider"></div>
     <span id="filterTableNote" style="font-size:12px;color:var(--accent-blue);font-weight:600;display:none;">← highlighted column</span>
   </div>
@@ -1026,7 +294,7 @@
     </table>
   </div>
 
-  <!-- Charts Grid -->
+  <!-- Interactive Visualizations Grid -->
   <div class="section-header mb-24">
     <div class="section-title">📈 Interactive Visualizations</div>
     <div class="section-divider"></div>
@@ -1067,23 +335,23 @@
         <div class="form-grid">
           <div class="form-group">
             <label>📚 Education (hrs)</label>
-            <input type="number" id="fEdu" min="0" max="16" step="0.1" placeholder="e.g. 2.5" required />
+            <input type="number" id="fEdu" min="0" max="24" step="0.1" placeholder="e.g. 3.5" required />
           </div>
           <div class="form-group">
             <label>🎬 Entertainment (hrs)</label>
-            <input type="number" id="fEnt" min="0" max="16" step="0.1" placeholder="e.g. 3.0" required />
+            <input type="number" id="fEnt" min="0" max="24" step="0.1" placeholder="e.g. 2.0" required />
           </div>
           <div class="form-group">
             <label>📱 Social Media (hrs)</label>
-            <input type="number" id="fSoc" min="0" max="16" step="0.1" placeholder="e.g. 2.0" required />
+            <input type="number" id="fSoc" min="0" max="24" step="0.1" placeholder="e.g. 1.5" required />
           </div>
           <div class="form-group">
             <label>💬 Communication (hrs)</label>
-            <input type="number" id="fCom" min="0" max="16" step="0.1" placeholder="e.g. 1.5" required />
+            <input type="number" id="fCom" min="0" max="24" step="0.1" placeholder="e.g. 1.0" required />
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">➕ Add Record</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitRecord">➕ Add Record</button>
           <button type="reset" class="btn btn-ghost">Clear</button>
         </div>
       </form>
@@ -1096,22 +364,22 @@
         <div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Total students in dataset</div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <div style="font-size:28px;font-weight:800;font-family:var(--font-mono);" id="actStudentCount">40</div>
+            <div style="font-size:28px;font-weight:800;font-family:var(--font-mono);" id="actStudentCount">200</div>
             <div style="flex:1;">
               <div class="progress-bar-wrap">
                 <div class="progress-bar" id="progressBar" style="background:var(--accent-blue);width:100%;"></div>
               </div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">of 100 max slots</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="dataStorageModeLabel">Connected to C++ Backend (data.csv)</div>
             </div>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
-          <button class="btn btn-warning" onclick="resetData()">🔄 Reset to Default</button>
+          <button class="btn btn-warning" onclick="resetData()">🔄 Reload / Reset Dataset</button>
           <button class="btn btn-ghost" onclick="openModal('supabaseModal')">☁️ Sync with Supabase</button>
         </div>
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">
-          Data is persisted in <code style="background:var(--bg-input);padding:1px 4px;border-radius:3px;">localStorage</code> and survives page reloads. Click Reset to restore the original 40-student dataset.
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.5;" id="storageNote">
+          Data persists in <code>data.csv</code> via the C++ backend on Port 8080. If offline, the app operates gracefully via client-side <code>localStorage</code>.
         </div>
       </div>
     </div>
@@ -1122,7 +390,7 @@
     <div class="collapsible-header" onclick="toggleCollapse()" id="collapseHeader">
       <div class="section-header" style="margin-bottom:0;flex:1;">
         <div class="section-title">📋 Raw Student Data</div>
-        <div class="section-badge" id="rawCountBadge">40 records</div>
+        <div class="section-badge" id="rawCountBadge">200 records</div>
         <div class="section-divider"></div>
       </div>
       <div class="collapse-icon">▾</div>
@@ -1138,7 +406,7 @@
               <th>📱 Social Media</th>
               <th>💬 Communication</th>
               <th>Total</th>
-              <th></th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="rawTableBody"></tbody>
@@ -1172,9 +440,9 @@
       <span>📅 AY 2025–26</span>
     </div>
     <div class="footer-problem">
-      <strong>Problem Statement:</strong> To analyze the daily internet usage habits of university students across four key categories — Education, Entertainment, Social Media, and Communication — using core statistical methods (Mean, Median, Mode, Range, Standard Deviation, CV%, and Skewness) to uncover behavioral patterns and inform digital wellness policies.
+      <strong>Problem Statement:</strong> To analyze the daily internet usage habits of university students across four key categories — Education, Entertainment, Social Media, and Communication — using core statistical methods (Mean, Median, Mode, Range, Standard Deviation, CV%, and Skewness) with a dedicated C++ REST Backend to uncover behavioral patterns and inform digital wellness policies.
     </div>
-    <div class="footer-copy">NetPulse Analytics · Built with Chart.js &amp; Vanilla JS · Deployable on GitHub Pages</div>
+    <div class="footer-copy">NetPulse Analytics · C++ REST Backend (httplib) + Vanilla JS &amp; Chart.js · Ready for Local &amp; GitHub Pages</div>
   </div>
 </footer>
 
@@ -1336,9 +604,10 @@
     <div class="info-row"><div class="info-label">Domain</div><div class="info-value">Student Life</div></div>
     <div class="info-row"><div class="info-label">Subject</div><div class="info-value">Mathematical &amp; Data Modeling (MDM)</div></div>
     <div class="info-row"><div class="info-label">Academic Year</div><div class="info-value">2025–26</div></div>
+    <div class="info-row"><div class="info-label">Architecture</div><div class="info-value">C++ REST Backend (httplib) + Vanilla JS Client</div></div>
     <div class="info-row"><div class="info-label">Problem Statement</div><div class="info-value" style="line-height:1.6;">To analyze the daily internet usage habits of university students across four key categories — Education, Entertainment, Social Media, and Communication — using core statistical methods (Mean, Median, Mode, Range, Standard Deviation, CV%, and Skewness) to uncover behavioral patterns and inform digital wellness policies.</div></div>
     <div class="info-row"><div class="info-label">Metrics</div><div class="info-value">Mean · Median · Mode · Range · Std Dev · CV% · Skewness</div></div>
-    <div class="info-row"><div class="info-label">Tech Stack</div><div class="info-value">Pure HTML/CSS/JS · Chart.js 4 · localStorage</div></div>
+    <div class="info-row"><div class="info-label">Tech Stack</div><div class="info-value">C++ (cpp-httplib), HTML5, CSS3, JS, Chart.js 4, CSV/localStorage</div></div>
   </div>
 </div>
 
@@ -1370,61 +639,20 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- ══════════════════════════════════════════════════════
-     JAVASCRIPT
+     JAVASCRIPT (C++ REST API + RESILIENT CLIENT-SIDE ENGINE)
 ══════════════════════════════════════════════════════ -->
 <script>
 // ══════════════════════════════════════════════════════
-// 1. DEFAULT DATASET — 40 students (STRICT PERSISTENCE)
+// 1. CONFIGURATION & STATE
 // ══════════════════════════════════════════════════════
-const DEFAULT_DATA = [
-  {id:'S01',education:2.5,entertainment:3.5,social_media:2.0,communication:1.5},
-  {id:'S02',education:3.0,entertainment:2.5,social_media:3.5,communication:2.0},
-  {id:'S03',education:1.5,entertainment:4.5,social_media:2.5,communication:1.0},
-  {id:'S04',education:4.0,entertainment:1.5,social_media:1.5,communication:2.5},
-  {id:'S05',education:2.0,entertainment:5.0,social_media:3.0,communication:1.5},
-  {id:'S06',education:3.5,entertainment:3.0,social_media:2.0,communication:2.0},
-  {id:'S07',education:1.0,entertainment:6.0,social_media:4.0,communication:1.0},
-  {id:'S08',education:5.0,entertainment:2.0,social_media:1.0,communication:3.0},
-  {id:'S09',education:2.5,entertainment:3.5,social_media:2.5,communication:1.5},
-  {id:'S10',education:3.0,entertainment:2.0,social_media:4.5,communication:2.5},
-  {id:'S11',education:4.5,entertainment:1.0,social_media:2.0,communication:3.5},
-  {id:'S12',education:2.0,entertainment:4.0,social_media:3.0,communication:1.0},
-  {id:'S13',education:1.5,entertainment:5.5,social_media:2.5,communication:1.5},
-  {id:'S14',education:3.5,entertainment:2.5,social_media:1.5,communication:2.0},
-  {id:'S15',education:2.5,entertainment:3.0,social_media:3.5,communication:2.5},
-  {id:'S16',education:4.0,entertainment:2.0,social_media:2.0,communication:1.5},
-  {id:'S17',education:1.0,entertainment:4.5,social_media:4.0,communication:1.0},
-  {id:'S18',education:3.0,entertainment:3.5,social_media:2.5,communication:2.0},
-  {id:'S19',education:5.5,entertainment:1.5,social_media:1.0,communication:2.0},
-  {id:'S20',education:2.0,entertainment:4.0,social_media:3.0,communication:2.5},
-  {id:'S21',education:3.5,entertainment:2.5,social_media:2.5,communication:1.5},
-  {id:'S22',education:1.5,entertainment:5.0,social_media:3.5,communication:1.0},
-  {id:'S23',education:4.0,entertainment:1.5,social_media:2.0,communication:3.0},
-  {id:'S24',education:2.5,entertainment:3.0,social_media:4.0,communication:2.0},
-  {id:'S25',education:3.0,entertainment:2.5,social_media:2.0,communication:2.5},
-  {id:'S26',education:1.0,entertainment:5.5,social_media:3.5,communication:1.0},
-  {id:'S27',education:4.5,entertainment:2.0,social_media:1.5,communication:2.5},
-  {id:'S28',education:2.0,entertainment:4.5,social_media:2.5,communication:1.5},
-  {id:'S29',education:3.5,entertainment:3.0,social_media:2.0,communication:2.0},
-  {id:'S30',education:5.0,entertainment:1.5,social_media:1.5,communication:2.0},
-  {id:'S31',education:2.5,entertainment:3.5,social_media:3.0,communication:1.5},
-  {id:'S32',education:1.5,entertainment:4.0,social_media:4.0,communication:1.0},
-  {id:'S33',education:4.0,entertainment:2.5,social_media:2.0,communication:2.5},
-  {id:'S34',education:3.0,entertainment:3.0,social_media:3.0,communication:2.0},
-  {id:'S35',education:2.0,entertainment:5.0,social_media:2.5,communication:1.5},
-  {id:'S36',education:3.5,entertainment:2.0,social_media:2.5,communication:2.0},
-  {id:'S37',education:1.0,entertainment:6.5,social_media:3.5,communication:1.0},
-  {id:'S38',education:4.5,entertainment:1.5,social_media:1.5,communication:3.0},
-  {id:'S39',education:2.5,entertainment:4.0,social_media:2.0,communication:2.5},
-  {id:'S40',education:3.0,entertainment:3.5,social_media:3.5,communication:1.5},
-];
-
-// ══════════════════════════════════════════════════════
-// 2. STATE
-// ══════════════════════════════════════════════════════
-const STORAGE_KEY = 'netpulse_student_data';
+const API_BASE    = 'http://localhost:8080';
+const STORAGE_KEY = 'netpulse_student_data_200';
 const SB_KEY      = 'netpulse_supabase_config';
+
 let dataset = [];
+let isBackendOnline = false;
+let backendStatsCache = null;
+
 let heroChartMode  = 'doughnut';
 let heroChartInst  = null;
 let groupedBarInst = null;
@@ -1442,26 +670,65 @@ const CAT_COLORS = {
   social_media: { solid:'rgba(45,212,160,0.85)', border:'#2dd4a0', light:'rgba(45,212,160,0.15)' },
   communication:{ solid:'rgba(249,115,22,0.85)', border:'#f97316', light:'rgba(249,115,22,0.15)' },
 };
+
 // Ideal daily benchmarks
 const IDEAL = { education:4.0, entertainment:1.5, social_media:1.0, communication:1.0 };
 
 // ══════════════════════════════════════════════════════
-// 3. STATISTICAL ENGINE (Strict Mathematical Accuracy)
+// 2. BACKEND CONNECTION & HEALTH CHECK
+// ══════════════════════════════════════════════════════
+async function checkBackendConnection(userInitiated = false) {
+  const pill = document.getElementById('backendStatusPill');
+  const text = document.getElementById('backendStatusText');
+  const note = document.getElementById('dataStorageModeLabel');
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch(`${API_BASE}/api/stats`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      isBackendOnline = true;
+      backendStatsCache = data.metrics || null;
+
+      pill.className = 'backend-status-pill online';
+      text.textContent = '🟢 C++ Backend Connected (Port 8080)';
+      if (note) note.textContent = 'Connected to C++ Backend (data.csv)';
+      if (userInitiated) showToast('🟢 Connected to C++ Backend (Port 8080)', 'success');
+      return true;
+    }
+  } catch (err) {
+    // Backend offline
+  }
+
+  isBackendOnline = false;
+  backendStatsCache = null;
+  pill.className = 'backend-status-pill offline';
+  text.textContent = '🟡 Offline / Client-Side Mode';
+  if (note) note.textContent = 'Offline Mode (localStorage / data.csv)';
+  if (userInitiated) showToast('🟡 C++ Backend Offline. Using Client-Side Mode', 'warning');
+  return false;
+}
+
+// ══════════════════════════════════════════════════════
+// 3. STATISTICAL ENGINE (Exact Mathematical Accuracy)
 // ══════════════════════════════════════════════════════
 function calcStats(arr) {
   const n = arr.length;
   if (n === 0) return null;
   const sorted = [...arr].sort((a,b) => a - b);
 
-  // Mean
+  // 1. Mean
   const mean = arr.reduce((s,v) => s + v, 0) / n;
 
-  // Median
+  // 2. Median
   const median = n % 2 === 0
     ? (sorted[n/2-1] + sorted[n/2]) / 2
     : sorted[Math.floor(n/2)];
 
-  // Mode
+  // 3. Mode
   const freq = {};
   arr.forEach(v => { const k = Math.round(v*10)/10; freq[k] = (freq[k]||0)+1; });
   const maxFreq = Math.max(...Object.values(freq));
@@ -1470,17 +737,17 @@ function calcStats(arr) {
     : modes.length > 3 ? 'Multi-modal'
     : modes.map(m => m.toFixed(1)).join(', ');
 
-  // Range
+  // 4. Range
   const range = sorted[n-1] - sorted[0];
 
-  // Sample Standard Deviation
-  const variance = arr.reduce((s,v) => s + Math.pow(v-mean,2), 0) / (n-1);
+  // 5. Sample Standard Deviation
+  const variance = n > 1 ? arr.reduce((s,v) => s + Math.pow(v-mean,2), 0) / (n-1) : 0;
   const stdDev   = Math.sqrt(variance);
 
-  // Coefficient of Variation
+  // 6. Coefficient of Variation
   const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
 
-  // Sample Skewness (Fisher-Pearson with bias correction)
+  // 7. Fisher-Pearson Sample Skewness
   let skewness = 0;
   if (n >= 3 && stdDev > 0) {
     const m3 = arr.reduce((s,v) => s + Math.pow(v-mean,3), 0) / n;
@@ -1492,28 +759,128 @@ function calcStats(arr) {
 
 function computeAllStats() {
   const result = {};
-  CATS.forEach(cat => { result[cat] = calcStats(dataset.map(r => r[cat])); });
+  CATS.forEach(cat => {
+    // If backend stats are available and not filtered, we can use them or compute locally
+    result[cat] = calcStats(dataset.map(r => r[cat]));
+  });
   return result;
 }
 
 // ══════════════════════════════════════════════════════
-// 4. PERSISTENCE
+// 4. DATA PERSISTENCE & LOAD (Backend + Resilient Fallback)
 // ══════════════════════════════════════════════════════
-function loadData() {
+async function loadData() {
+  const connected = await checkBackendConnection(false);
+
+  if (connected) {
+    try {
+      const res = await fetch(`${API_BASE}/api/students`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && json.data.length > 0) {
+          dataset = json.data.map(r => ({
+            id: r.student_id,
+            education: parseFloat(r.education) || 0,
+            entertainment: parseFloat(r.entertainment) || 0,
+            social_media: parseFloat(r.social_media) || 0,
+            communication: parseFloat(r.communication) || 0
+          }));
+          saveLocalCache();
+          renderAll();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Backend load failed, falling back to local source.', e);
+    }
+  }
+
+  // Fallback 1: Try reading from static data.csv
+  try {
+    const res = await fetch('./data.csv');
+    if (res.ok) {
+      const text = await res.text();
+      const parsed = parseCSV(text);
+      if (parsed.length > 0) {
+        dataset = parsed;
+        saveLocalCache();
+        renderAll();
+        return;
+      }
+    }
+  } catch (e) {
+    // Fallback 2: LocalStorage
+  }
+
+  // Fallback 2: LocalStorage cache
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) { dataset = JSON.parse(stored); return; }
-  } catch(e) {}
-  dataset = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  saveData();
-}
-function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset)); }
-function resetData() {
-  if (!confirm('Reset to default 40-student dataset? This cannot be undone.')) return;
-  dataset = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  saveData();
+    if (stored) {
+      dataset = JSON.parse(stored);
+      if (dataset.length > 0) {
+        renderAll();
+        return;
+      }
+    }
+  } catch (e) {}
+
+  // Fallback 3: Generate realistic starter dataset if everything else is empty
+  generateDefaultDataset();
   renderAll();
-  showToast('🔄 Dataset reset to default.', 'neutral');
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const list = [];
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',');
+    if (parts.length >= 5) {
+      list.push({
+        id: parts[0].trim(),
+        education: parseFloat(parts[1]) || 0,
+        entertainment: parseFloat(parts[2]) || 0,
+        social_media: parseFloat(parts[3]) || 0,
+        communication: parseFloat(parts[4]) || 0
+      });
+    }
+  }
+  return list;
+}
+
+function generateDefaultDataset() {
+  dataset = [];
+  for (let i = 1; i <= 200; i++) {
+    const id = 'S' + String(i).padStart(3, '0');
+    dataset.push({
+      id,
+      education: +(Math.max(0.5, Math.min(6.5, 2.5 + (Math.sin(i * 1.3) * 1.4) + ((i % 5) * 0.2))).toFixed(1)),
+      entertainment: +(Math.max(0.8, Math.min(7.0, 3.2 + (Math.cos(i * 0.9) * 1.5) + ((i % 3) * 0.3))).toFixed(1)),
+      social_media: +(Math.max(0.5, Math.min(5.5, 2.4 + (Math.sin(i * 0.7) * 1.1) + ((i % 4) * 0.25))).toFixed(1)),
+      communication: +(Math.max(0.5, Math.min(4.0, 1.8 + (Math.cos(i * 1.1) * 0.8) + ((i % 6) * 0.15))).toFixed(1))
+    });
+  }
+  saveLocalCache();
+}
+
+function saveLocalCache() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset));
+  } catch (e) {}
+}
+
+async function resetData() {
+  if (isBackendOnline) {
+    if (confirm('Reload latest data from C++ Backend (data.csv)?')) {
+      await loadData();
+      showToast('🔄 Dataset reloaded from C++ Backend', 'neutral');
+    }
+  } else {
+    if (confirm('Reset to default 200-student dataset?')) {
+      generateDefaultDataset();
+      renderAll();
+      showToast('🔄 Dataset reset locally', 'neutral');
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1524,6 +891,7 @@ function enterDashboard() {
   overlay.classList.add('hiding');
   setTimeout(() => { overlay.style.display = 'none'; }, 620);
 }
+
 function showLanding() {
   const overlay = document.getElementById('landingOverlay');
   overlay.style.display = 'flex';
@@ -1558,7 +926,7 @@ function renderAll() {
 }
 
 // ══════════════════════════════════════════════════════
-// 7. KPI CARDS (Filter-aware)
+// 7. KPI CARDS
 // ══════════════════════════════════════════════════════
 function updateKPIs(stats) {
   if (activeFilter === 'all') {
@@ -1608,7 +976,7 @@ function setKPI(idx, icon, label, value, sub) {
 }
 
 // ══════════════════════════════════════════════════════
-// 8. STATS TABLE
+// 8. MASTER STATISTICAL TABLE
 // ══════════════════════════════════════════════════════
 function renderStatsTable(stats) {
   const metrics = [
@@ -1663,7 +1031,6 @@ function renderHeroChart(stats) {
   const ctx = document.getElementById('heroChart').getContext('2d');
   const tc  = getTextSecondary();
 
-  // Update footer chips on the left card
   const hfEdu = document.getElementById('hfEdu');
   if (hfEdu && stats.education) hfEdu.textContent = stats.education.mean.toFixed(1) + 'h';
   const hfEnt = document.getElementById('hfEnt');
@@ -1698,7 +1065,7 @@ function renderHeroChart(stats) {
         },
         scales:{
           y:{ beginAtZero:true, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:10}} },
-          x:{ grid:{display:false}, ticks:{color:tc,font:{size:9}, maxTicksLimit:10} }
+          x:{ grid:{display:false}, ticks:{color:tc,font:{size:9}, maxTicksLimit:12} }
         }
       }
     });
@@ -1831,7 +1198,7 @@ function renderDistribution(stats) {
       data:[...dataset.map(r=>r[cat])].sort((a,b)=>a-b),
       borderColor:CAT_COLORS[cat].border,
       backgroundColor:CAT_COLORS[cat].light,
-      pointRadius:2, borderWidth:2, fill:false, tension:0.3
+      pointRadius:1.5, borderWidth:2, fill:false, tension:0.3
     }));
     distInst = new Chart(ctx, {
       type:'line',
@@ -1844,7 +1211,7 @@ function renderDistribution(stats) {
         },
         scales:{
           y:{ beginAtZero:true, title:{display:true,text:'Hours/Day',color:tc,font:{size:11}}, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:tc,font:{size:11}} },
-          x:{ title:{display:true,text:'Students (sorted by usage)',color:tc,font:{size:11}}, grid:{display:false}, ticks:{color:tc,font:{size:10}} }
+          x:{ title:{display:true,text:'Students (sorted by usage)',color:tc,font:{size:11}}, grid:{display:false}, ticks:{color:tc,font:{size:10}, maxTicksLimit:15} }
         }
       }
     });
@@ -1903,7 +1270,7 @@ function renderRawTable() {
       <td class="${activeFilter==='social_media'?'col-active':''} text-green">${row.social_media.toFixed(1)}</td>
       <td class="${activeFilter==='communication'?'col-active':''} text-orange">${row.communication.toFixed(1)}</td>
       <td style="font-weight:700;">${total}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteRecord(${idx})">✕</button></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRecord('${row.id}')" title="Delete record">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -1912,11 +1279,11 @@ function renderRawTable() {
 
 function updateActionsPanel() {
   document.getElementById('actStudentCount').textContent = dataset.length;
-  document.getElementById('progressBar').style.width = Math.min((dataset.length/100)*100,100)+'%';
+  document.getElementById('progressBar').style.width = Math.min((dataset.length / 300) * 100, 100) + '%';
 }
 
 // ══════════════════════════════════════════════════════
-// 14. AUTOMATED INSIGHTS
+// 14. DYNAMIC INSIGHTS CARD
 // ══════════════════════════════════════════════════════
 let insightUpdateTimer = null;
 function renderInsights(stats) {
@@ -1928,32 +1295,32 @@ function renderInsights(stats) {
     const s   = stats[cat];
     const icon = CAT_ICONS[cat];
 
-    insights.push({ icon, text: `<strong>${CAT_LABELS[cat]}</strong> averages <strong>${s.mean.toFixed(2)} hrs/day</strong> with a median of <strong>${s.median.toFixed(2)} hrs</strong>. Mode: <strong>${s.mode}</strong>. The ${s.median > s.mean ? 'median exceeds the mean, suggesting left-skew (more heavy users pulling the average down)' : 'mean exceeds the median, consistent with a right-skewed distribution (a few heavy users pulling the average up)'}.` });
-    insights.push({ icon:'📊', text: `Standard Deviation for <strong>${CAT_LABELS[cat]}</strong> is <strong>σ = ${s.stdDev.toFixed(3)}</strong>, giving a Coefficient of Variation of <strong>${s.cv.toFixed(1)}%</strong>. This is ${s.cv < 25 ? '<strong>low</strong> — usage is highly consistent across students' : s.cv < 45 ? '<strong>moderate</strong> — noticeable variation in student habits' : '<strong>high</strong> — significant spread; individual usage varies widely'}.` });
-    insights.push({ icon: s.skewness > 0.3 ? '➡️' : s.skewness < -0.3 ? '⬅️' : '↔️', text: `Skewness for <strong>${CAT_LABELS[cat]}</strong> is <strong>${(s.skewness>=0?'+':'')+s.skewness.toFixed(3)}</strong> — ${s.skewness > 0.3 ? 'positively (right) skewed: most students use it moderately but a minority of heavy users inflate the mean.' : s.skewness < -0.3 ? 'negatively (left) skewed: most students are relatively heavy users while a few light users drag the average down.' : 'approximately symmetric: usage is evenly distributed around the mean with no strong tail.'}` });
+    insights.push({ icon, text: `<strong>${CAT_LABELS[cat]}</strong> averages <strong>${s.mean.toFixed(2)} hrs/day</strong> with a median of <strong>${s.median.toFixed(2)} hrs</strong>. Mode: <strong>${s.mode}</strong>. The ${s.median > s.mean ? 'median exceeds the mean, indicating a left-skewed cluster with most students above average' : 'mean exceeds the median, consistent with right-skew where high-usage outliers elevate the average'}.` });
+    insights.push({ icon:'📊', text: `Standard Deviation for <strong>${CAT_LABELS[cat]}</strong> is <strong>σ = ${s.stdDev.toFixed(3)}</strong>, giving a Coefficient of Variation of <strong>${s.cv.toFixed(1)}%</strong>. This represents ${s.cv < 30 ? '<strong>high behavioral consistency</strong> across the cohort' : s.cv < 50 ? '<strong>moderate variance</strong> in student routines' : '<strong>high dispersion</strong> with sharp individual habit divergence'}.` });
+    insights.push({ icon: s.skewness > 0.3 ? '➡️' : s.skewness < -0.3 ? '⬅️' : '↔️', text: `Skewness for <strong>${CAT_LABELS[cat]}</strong> is <strong>${(s.skewness>=0?'+':'')+s.skewness.toFixed(3)}</strong> — ${s.skewness > 0.3 ? 'positively skewed: most students use it moderately while heavy binge-users pull the distribution tail upward.' : s.skewness < -0.3 ? 'negatively skewed: typical usage is high while a minority of light users form the lower tail.' : 'approximately symmetric across the student population.'}` });
     const ideal = IDEAL[cat];
     const avgVsIdeal = s.mean - ideal;
-    insights.push({ icon:'🎯', text: `Cohort mean of <strong>${s.mean.toFixed(2)}h</strong> vs ideal target of <strong>${ideal}h</strong>: the cohort average is <strong>${avgVsIdeal > 0 ? '+'+avgVsIdeal.toFixed(2)+'h above' : Math.abs(avgVsIdeal).toFixed(2)+'h below'} the ideal</strong>. ${cat==='education'&&avgVsIdeal<0?'This indicates insufficient academic screen time on average.':(cat!=='education'&&avgVsIdeal>0)?'The cohort is exceeding healthy digital wellness limits.':'The cohort is close to the ideal benchmark.'}` });
+    insights.push({ icon:'🎯', text: `Cohort mean of <strong>${s.mean.toFixed(2)}h</strong> vs ideal target of <strong>${ideal}h</strong>: the cohort average is <strong>${avgVsIdeal > 0 ? '+'+avgVsIdeal.toFixed(2)+'h above' : Math.abs(avgVsIdeal).toFixed(2)+'h below'} the ideal</strong>. ${cat==='education'&&avgVsIdeal<0?'Average academic study time falls short of the recommended threshold.':(cat!=='education'&&avgVsIdeal>0)?'Non-academic screen time exceeds balanced digital wellness guidelines.':'Usage is closely aligned with the recommended benchmark.'}` });
     document.getElementById('insightFilterNote').textContent = `Focused on: ${CAT_LABELS[cat]}`;
     document.getElementById('insightFilterNote').style.display = 'inline';
   } else {
     document.getElementById('insightFilterNote').style.display = 'none';
     const topCat  = CATS.map(c=>({c,v:stats[c].mean})).reduce((a,b)=>a.v>b.v?a:b);
-    insights.push({ icon:'📈', text:`<strong>${CAT_LABELS[topCat.c]}</strong> dominates daily internet usage with the highest average of <strong>${topCat.v.toFixed(2)} hrs/day</strong>. This suggests students allocate most of their online time to ${topCat.c==='entertainment'?'leisure and media consumption':topCat.c==='education'?'academic activities':topCat.c==='social_media'?'social networking platforms':'messaging and calls'}.` });
+    insights.push({ icon:'📈', text:`<strong>${CAT_LABELS[topCat.c]}</strong> represents the primary usage driver, averaging <strong>${topCat.v.toFixed(2)} hrs/day</strong> per student. This demonstrates that students spend the largest share of their online day on ${topCat.c==='entertainment'?'leisure and streaming':topCat.c==='education'?'academic studies and research':topCat.c==='social_media'?'social networks':'messaging and voice calls'}.` });
 
     const highCV = CATS.map(c=>({c,v:stats[c].cv})).reduce((a,b)=>a.v>b.v?a:b);
     const lowCV  = CATS.map(c=>({c,v:stats[c].cv})).reduce((a,b)=>a.v<b.v?a:b);
-    insights.push({ icon:'📊', text:`<strong>${CAT_LABELS[highCV.c]}</strong> shows the highest variability (CV = <strong>${highCV.v.toFixed(1)}%</strong>), indicating significant differences in how individual students use the internet for this purpose. <strong>${CAT_LABELS[lowCV.c]}</strong> is the most consistent habit (CV = <strong>${lowCV.v.toFixed(1)}%</strong>).` });
+    insights.push({ icon:'📊', text:`<strong>${CAT_LABELS[highCV.c]}</strong> shows the highest behavioral variability (CV = <strong>${highCV.v.toFixed(1)}%</strong>), signifying marked lifestyle differences between students. Conversely, <strong>${CAT_LABELS[lowCV.c]}</strong> is the most uniform habit (CV = <strong>${lowCV.v.toFixed(1)}%</strong>).` });
 
     CATS.forEach(cat => {
       const sk = stats[cat].skewness;
       if (Math.abs(sk) > 0.3) {
-        insights.push({ icon: sk > 0 ? '➡️' : '⬅️', text:`<strong>${CAT_LABELS[cat]}</strong> is <strong>${sk>0?'positively (right)':'negatively (left)'} skewed</strong> (skew = ${sk>=0?'+':''}${sk.toFixed(2)}): ${sk>0?'most students use it moderately while a few heavy users pull the average up':'most students are heavy users while a few light users pull the average down'}. This affects the reliability of the mean as a representative measure.` });
+        insights.push({ icon: sk > 0 ? '➡️' : '⬅️', text:`<strong>${CAT_LABELS[cat]}</strong> exhibits <strong>${sk>0?'positive (right)':'negative (left)'} skewness</strong> (${sk>=0?'+':''}${sk.toFixed(2)}): ${sk>0?'the bulk of students record moderate daily hours with a small group of heavy users extending the tail':'most students record substantial hours with infrequent low-usage entries'}.` });
       }
     });
 
     const avgTotal = CATS.reduce((s,c)=>s+stats[c].mean,0);
-    insights.push({ icon:'⏱️', text:`On average, students spend <strong>${avgTotal.toFixed(2)} hours per day</strong> online across all categories. The ideal total for a balanced student is <strong>${Object.values(IDEAL).reduce((s,v)=>s+v,0).toFixed(1)}h/day</strong> — the cohort average is <strong>${(avgTotal - Object.values(IDEAL).reduce((s,v)=>s+v,0)).toFixed(2)}h above</strong> the healthy benchmark.` });
+    insights.push({ icon:'⏱️', text:`Overall daily internet screen time averages <strong>${avgTotal.toFixed(2)} hours/student</strong>. Compared with the balanced target of <strong>7.5h/day</strong>, the student body averages <strong>${(avgTotal - 7.5 > 0 ? '+' : '')}${(avgTotal - 7.5).toFixed(2)} hours</strong> against the ideal benchmark.` });
   }
 
   clearTimeout(insightUpdateTimer);
@@ -1970,7 +1337,7 @@ function renderInsights(stats) {
 }
 
 // ══════════════════════════════════════════════════════
-// 15. FILTER
+// 15. CATEGORY FILTER
 // ══════════════════════════════════════════════════════
 function applyFilter() {
   activeFilter = document.getElementById('filterCategory').value;
@@ -1991,7 +1358,7 @@ function updateFilterUI() {
   if (activeFilter !== 'all') {
     filterWrap.classList.add('has-filter');
     banner.classList.remove('hidden');
-    bannerText.textContent = `Viewing: ${CAT_ICONS[activeFilter]} ${CAT_LABELS[activeFilter]} — KPIs, table column, and charts are focused on this category`;
+    bannerText.textContent = `Viewing: ${CAT_ICONS[activeFilter]} ${CAT_LABELS[activeFilter]} — KPIs, table column, and charts are filtered to this category`;
   } else {
     filterWrap.classList.remove('has-filter');
     banner.classList.add('hidden');
@@ -1999,12 +1366,13 @@ function updateFilterUI() {
 }
 
 // ══════════════════════════════════════════════════════
-// 16. SIMULATOR (Synced between Compact Card & Full Modal)
+// 16. HABIT SIMULATOR (24h Strict Limit & Benchmarks)
 // ══════════════════════════════════════════════════════
 const SIM_IDS = ['simEdu','simEnt','simSoc','simCom'];
 const MODAL_SIM_IDS = ['m_simEdu','m_simEnt','m_simSoc','m_simCom'];
 
 function onSliderChange(changedId) {
+  // Strict 24.0-hour total allocation limit
   const others = SIM_IDS.filter(id => id !== changedId);
   const sumOthers = others.reduce((s,id) => s + parseFloat(document.getElementById(id).value), 0);
   const maxAllowed = Math.max(0, parseFloat((24 - sumOthers).toFixed(1)));
@@ -2145,9 +1513,9 @@ function updateSim() {
   } else {
     plans.push({ icon:'✅', text:`<strong>Entertainment & Social Media within healthy limits.</strong> Keep it up!` });
   }
-  const excCom = com - 2.0;
+  const excCom = com - 1.5;
   if (excCom > 0) {
-    plans.push({ icon:'💬', text:`Consider trimming passive messaging — reduce <strong>Communication</strong> by <strong>-${(com-1.5).toFixed(1)}h/day</strong> for a healthier balance.` });
+    plans.push({ icon:'💬', text:`Consider trimming passive messaging — reduce <strong>Communication</strong> by <strong>-${excCom.toFixed(1)}h/day</strong> for a healthier balance.` });
   } else {
     plans.push({ icon:'✅', text:`<strong>Communication time is well-balanced</strong> at ${com.toFixed(1)}h/day.` });
   }
@@ -2225,31 +1593,78 @@ function calcWellnessScore(edu, ent, soc, com) {
 }
 
 // ══════════════════════════════════════════════════════
-// 17. DATA MANAGEMENT
+// 17. DATA MANAGEMENT (POST & DELETE with Backend Sync)
 // ══════════════════════════════════════════════════════
-function addRecord(e) {
+async function addRecord(e) {
   e.preventDefault();
   const edu = parseFloat(document.getElementById('fEdu').value);
   const ent = parseFloat(document.getElementById('fEnt').value);
   const soc = parseFloat(document.getElementById('fSoc').value);
   const com = parseFloat(document.getElementById('fCom').value);
-  if ([edu,ent,soc,com].some(v => isNaN(v)||v<0||v>16)) {
-    showToast('⚠️ All values must be between 0 and 16.','warning'); return;
+
+  if ([edu,ent,soc,com].some(v => isNaN(v)||v<0||v>24)) {
+    showToast('⚠️ Hours must be between 0 and 24.', 'warning');
+    return;
   }
-  const newId = 'S' + String(dataset.length+1).padStart(2,'0');
-  dataset.push({ id:newId, education:edu, entertainment:ent, social_media:soc, communication:com });
-  saveData();
+
+  // If C++ Backend is online, send POST /api/students
+  if (isBackendOnline) {
+    try {
+      const res = await fetch(`${API_BASE}/api/students`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ education: edu, entertainment: ent, social_media: soc, communication: com })
+      });
+      if (res.ok) {
+        const result = await res.json();
+        const newRec = result.student || {
+          id: 'S' + String(dataset.length + 1).padStart(3, '0'),
+          education: edu, entertainment: ent, social_media: soc, communication: com
+        };
+        dataset.push(newRec);
+        saveLocalCache();
+        renderAll();
+        e.target.reset();
+        showToast(`✅ Record ${newRec.student_id || newRec.id} saved to C++ Backend (data.csv)`, 'success');
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend POST failed, saving locally.', err);
+    }
+  }
+
+  // Offline fallback: save locally
+  const newId = 'S' + String(dataset.length + 1).padStart(3, '0');
+  dataset.push({ id: newId, education: edu, entertainment: ent, social_media: soc, communication: com });
+  saveLocalCache();
   renderAll();
   e.target.reset();
-  showToast(`✅ Record ${newId} added successfully.`,'success');
+  showToast(`✅ Record ${newId} saved locally (Offline mode)`, 'neutral');
 }
 
-function deleteRecord(idx) {
-  dataset.splice(idx, 1);
-  dataset.forEach((r,i) => r.id = 'S'+String(i+1).padStart(2,'0'));
-  saveData();
+async function deleteRecord(id) {
+  if (!confirm(`Delete student record ${id}?`)) return;
+
+  if (isBackendOnline) {
+    try {
+      const res = await fetch(`${API_BASE}/api/students/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        dataset = dataset.filter(r => r.id !== id);
+        saveLocalCache();
+        renderAll();
+        showToast(`🗑️ Record ${id} deleted from C++ Backend (data.csv)`, 'neutral');
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend DELETE failed, deleting locally.', err);
+    }
+  }
+
+  // Offline fallback: delete locally
+  dataset = dataset.filter(r => r.id !== id);
+  saveLocalCache();
   renderAll();
-  showToast('🗑️ Record deleted.','neutral');
+  showToast(`🗑️ Record ${id} deleted locally`, 'neutral');
 }
 
 function exportCSV() {
@@ -2261,11 +1676,11 @@ function exportCSV() {
   const a       = document.createElement('a');
   a.href = url; a.download = 'student_internet_usage.csv';
   a.click(); URL.revokeObjectURL(url);
-  showToast('📥 CSV exported successfully.','success');
+  showToast('📥 CSV exported successfully.', 'success');
 }
 
 // ══════════════════════════════════════════════════════
-// 18. COLLAPSIBLE
+// 18. COLLAPSIBLE TABLE
 // ══════════════════════════════════════════════════════
 function toggleCollapse() {
   collapseOpen = !collapseOpen;
@@ -2277,7 +1692,7 @@ function toggleCollapse() {
 }
 
 // ══════════════════════════════════════════════════════
-// 19. THEME
+// 19. THEME & UTILITIES
 // ══════════════════════════════════════════════════════
 function toggleTheme() {
   const root  = document.documentElement;
@@ -2290,6 +1705,7 @@ function toggleTheme() {
     renderHeroChart(s); renderGroupedBar(s); renderDistribution(s); renderHistogram();
   }, 50);
 }
+
 function getTextSecondary() {
   return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#8899b4';
 }
@@ -2299,6 +1715,7 @@ function getTextSecondary() {
 // ══════════════════════════════════════════════════════
 function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if(e.target===overlay) closeModal(overlay.id); });
 });
@@ -2307,7 +1724,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ══════════════════════════════════════════════════════
-// 21. SUPABASE
+// 21. SUPABASE (Optional Secondary Cloud Integration)
 // ══════════════════════════════════════════════════════
 async function supabaseConnect() {
   const url   = document.getElementById('sbUrl').value.trim();
@@ -2323,13 +1740,13 @@ async function supabaseConnect() {
     const rows = await resp.json();
     if (Array.isArray(rows) && rows.length > 0) {
       dataset = rows.map((r,i) => ({
-        id:r.student_id||'S'+String(i+1).padStart(2,'0'),
+        id:r.student_id||'S'+String(i+1).padStart(3,'0'),
         education:parseFloat(r.education)||0,
         entertainment:parseFloat(r.entertainment)||0,
         social_media:parseFloat(r.social_media)||0,
         communication:parseFloat(r.communication)||0,
       }));
-      saveData();
+      saveLocalCache();
       localStorage.setItem(SB_KEY, JSON.stringify({url,key,table}));
       showSbStatus('success',`✅ Synced ${rows.length} records from Supabase.`);
       renderAll();
@@ -2342,19 +1759,21 @@ async function supabaseConnect() {
     showSbStatus('error','❌ Connection failed: '+err.message);
   }
 }
+
 function supabaseClear() {
   localStorage.removeItem(SB_KEY);
   document.getElementById('sbUrl').value='';
   document.getElementById('sbKey').value='';
-  showSbStatus('success','Config cleared. Using localStorage only.');
+  showSbStatus('success','Config cleared. Using local/C++ backend.');
 }
+
 function showSbStatus(type, msg) {
   const el = document.getElementById('sbStatus');
   el.style.display='block'; el.className=`supabase-status ${type}`; el.textContent=msg;
 }
 
 // ══════════════════════════════════════════════════════
-// 22. TOAST
+// 22. TOAST NOTIFICATIONS
 // ══════════════════════════════════════════════════════
 function showToast(msg, type='neutral') {
   const icons  = {success:'✅',warning:'⚠️',error:'❌',neutral:'ℹ️'};
@@ -2372,9 +1791,9 @@ function showToast(msg, type='neutral') {
 }
 
 // ══════════════════════════════════════════════════════
-// 23. INIT
+// 23. INITIALIZATION
 // ══════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const savedTheme = localStorage.getItem('netpulse_theme');
   if (savedTheme) {
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -2382,11 +1801,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   try {
     const cfg = JSON.parse(localStorage.getItem(SB_KEY)||'{}');
-    if (cfg.url) { document.getElementById('sbUrl').value=cfg.url; document.getElementById('sbKey').value=cfg.key||''; document.getElementById('sbTable').value=cfg.table||'student_internet_usage'; }
+    if (cfg.url) {
+      document.getElementById('sbUrl').value=cfg.url;
+      document.getElementById('sbKey').value=cfg.key||'';
+      document.getElementById('sbTable').value=cfg.table||'student_internet_usage';
+    }
   } catch(e){}
 
-  loadData();
-  renderAll();
+  await loadData();
+
+  // Periodic health check every 12 seconds to dynamically detect backend status
+  setInterval(() => {
+    checkBackendConnection(false);
+  }, 12000);
 });
 </script>
 </body>
